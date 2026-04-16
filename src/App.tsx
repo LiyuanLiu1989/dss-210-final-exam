@@ -10,6 +10,7 @@ import Practice from "./components/Practice";
 import Leaderboard from "./components/Leaderboard";
 import Social from "./components/Social";
 import BattleArena from "./components/BattleArena";
+import StudyGuide from "./components/StudyGuide";
 import { Toaster } from "./components/ui/sonner";
 import { 
   GraduationCap, 
@@ -21,7 +22,8 @@ import {
   Users, 
   Swords, 
   Check, 
-  X 
+  X,
+  FileText
 } from "lucide-react";
 import { db } from "./lib/firebase";
 import { 
@@ -37,11 +39,11 @@ import {
   deleteDoc
 } from "firebase/firestore";
 import { GameSession, UserProfile, Question } from "./types";
-import { generateSimilarQuestion, generateBatchQuestions } from "./services/geminiService";
+import { STATIC_QUESTIONS } from "./staticQuestions";
 import { toast } from "sonner";
 import { Button } from "./components/ui/button";
 
-type View = "dashboard" | "practice" | "leaderboard" | "social";
+type View = "dashboard" | "practice" | "leaderboard" | "social" | "study";
 
 export default function App() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -50,6 +52,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>("dashboard");
   const [activeBattleId, setActiveBattleId] = useState<string | null>(null);
   const [incomingInvite, setIncomingInvite] = useState<GameSession & { id: string } | null>(null);
+  const [activeAssignment, setActiveAssignment] = useState<{ id: string, questionIndices: number[] } | null>(null);
 
   useEffect(() => {
     const storedId = localStorage.getItem("statsMaster_userId");
@@ -101,23 +104,10 @@ export default function App() {
   };
 
   const handleChallenge = async (friendId: string, friendName: string) => {
-    toast.loading("Finding questions in the bank...");
+    toast.info("Preparing Battle Arena...");
     try {
-      // Pull questions from the bank
-      const questionsSnap = await getDocs(collection(db, "questions"));
-      let questions = questionsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as any as Question));
-
-      // Refill if empty
-      if (questions.length < 3) {
-        toast.info("Bank empty. Generating fresh battle problems...");
-        const newBatch = await generateBatchQuestions(10);
-        const savePromises = newBatch.map(q => addDoc(collection(db, "questions"), q));
-        await Promise.all(savePromises);
-        questions = newBatch;
-      }
-
-      // Select 3 random questions
-      const selectedQuestions = questions
+      // Select 3 random questions from static pool
+      const selectedQuestions = [...STATIC_QUESTIONS]
         .sort(() => 0.5 - Math.random())
         .slice(0, 3);
 
@@ -165,6 +155,12 @@ export default function App() {
     } catch (error) {
       toast.error("Failed to reject.");
     }
+  };
+
+  const handleStartAssignment = (assignmentId: string, questionIndices: number[]) => {
+    setActiveAssignment({ id: assignmentId, questionIndices });
+    setCurrentView("practice");
+    toast.success("Homework set loaded! Complete it to earn extra points.");
   };
 
   if (loading) {
@@ -228,6 +224,13 @@ export default function App() {
             My Dashboard
           </div>
           <div 
+            className={`sidebar-nav-item flex items-center gap-3 ${currentView === "study" ? "active" : ""}`}
+            onClick={() => setCurrentView("study")}
+          >
+            <FileText className="w-4 h-4" />
+            Study Guide
+          </div>
+          <div 
             className={`sidebar-nav-item flex items-center gap-3 ${currentView === "practice" ? "active" : ""}`}
             onClick={() => setCurrentView("practice")}
           >
@@ -283,26 +286,35 @@ export default function App() {
                   userId={userId}
                   onStartPractice={() => setCurrentView("practice")}
                   onViewLeaderboard={() => setCurrentView("leaderboard")}
+                  onOpenStudyGuide={() => setCurrentView("study")}
                 />
               )}
               
-              {(currentView === "practice" || currentView === "leaderboard" || currentView === "social") && (
+              {(currentView === "practice" || currentView === "leaderboard" || currentView === "social" || currentView === "study") && (
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 items-start">
                   <div className="space-y-5">
-                    {currentView === "practice" && <Practice userId={userId} />}
+                    {currentView === "practice" && (
+                      <Practice 
+                        userId={userId} 
+                        assignmentData={activeAssignment || undefined} 
+                        onCompleteAssignment={() => setActiveAssignment(null)}
+                      />
+                    )}
                     {currentView === "leaderboard" && <Leaderboard fullWidth />}
-                    {currentView === "social" && <Social userId={userId} onChallenge={handleChallenge} />}
+                    {currentView === "social" && (
+                      <Social 
+                        userId={userId} 
+                        userName={userName}
+                        onChallenge={handleChallenge} 
+                        onStartAssignment={handleStartAssignment}
+                      />
+                    )}
+                    {currentView === "study" && <StudyGuide />}
                   </div>
                   
                   <aside className="space-y-5">
                     {/* Consistent Sidebar Widgets */}
-                    <Leaderboard isMini />
-                    <div className="high-density-card">
-                      <div className="section-title">Class Tip</div>
-                      <p className="text-[11px] text-[#64748b] leading-relaxed">
-                        Practice standard deviation problems carefully—they usually carry more weight in the final exam!
-                      </p>
-                    </div>
+                    {currentView !== "leaderboard" && <Leaderboard isMini />}
                   </aside>
                 </div>
               )}

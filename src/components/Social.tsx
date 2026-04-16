@@ -21,20 +21,22 @@ import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
-import { Search, UserPlus, Check, X, Swords, Users } from "lucide-react";
+import { Search, UserPlus, Check, X, Swords, Users, FileText, BookOpen } from "lucide-react";
 import { toast } from "sonner";
-import { generateSimilarQuestion } from "../services/geminiService";
 
 interface SocialProps {
   userId: string;
+  userName: string;
   onChallenge: (friendId: string, friendName: string) => void;
+  onStartAssignment: (assignmentId: string, questions: number[]) => void;
 }
 
-export default function Social({ userId, onChallenge }: SocialProps) {
+export default function Social({ userId, userName, onChallenge, onStartAssignment }: SocialProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
   const [friends, setFriends] = useState<(UserProfile & { friendshipId: string })[]>([]);
   const [pendingRequests, setPendingRequests] = useState<(UserProfile & { friendshipId: string })[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [sentRequests, setSentRequests] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -72,13 +74,6 @@ export default function Social({ userId, onChallenge }: SocialProps) {
       setSentRequests(outgoingPending);
 
       // Fetch user profiles for accepted friends and incoming requests
-      const fetchProfiles = async (uids: string[]) => {
-        if (uids.length === 0) return [];
-        const usersQ = query(collection(db, "users"), where("uid", "in", uids.slice(0, 10))); // Limit to 10 for demo
-        const userSnap = await getDocs(usersQ);
-        return userSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile));
-      };
-
       // Note: In real app, we'd handle more efficiently, but for this demo:
       const acceptedProfiles = await Promise.all(
         acceptedFriendUids.map(async (uid) => {
@@ -100,8 +95,43 @@ export default function Social({ userId, onChallenge }: SocialProps) {
       setPendingRequests(pendingProfiles.filter(p => p !== null) as any);
     });
 
-    return () => unsubscribe();
+    // Listen for assignments received
+    const aq = query(
+      collection(db, "assignments"),
+      where("toId", "==", userId),
+      where("status", "==", "pending")
+    );
+    const unsubAssignments = onSnapshot(aq, (snapshot) => {
+      setAssignments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    return () => {
+      unsubscribe();
+      unsubAssignments();
+    };
   }, [userId]);
+
+  const assignHomework = async (friendId: string, friendName: string) => {
+    try {
+      // Pick 5 random questions
+      const indices = Array.from({ length: 60 }, (_, i) => i);
+      const shuffled = indices.sort(() => 0.5 - Math.random()).slice(0, 5);
+      
+      await addDoc(collection(db, "assignments"), {
+        fromId: userId,
+        fromName: userName || "A Classmate",
+        toId: friendId,
+        questionIndices: shuffled,
+        status: "pending",
+        pointsValue: 50,
+        createdAt: new Date().toISOString()
+      });
+      
+      toast.success(`You assigned a study set to ${friendName}!`);
+    } catch (error) {
+      toast.error("Failed to assign questions.");
+    }
+  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -170,7 +200,7 @@ export default function Social({ userId, onChallenge }: SocialProps) {
         </div>
 
         <Tabs defaultValue="friends" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsList className="grid w-full grid-cols-4 mb-4">
             <TabsTrigger value="friends" className="text-xs font-bold">Friends</TabsTrigger>
             <TabsTrigger value="requests" className="text-xs font-bold relative">
               Requests
@@ -180,7 +210,15 @@ export default function Social({ userId, onChallenge }: SocialProps) {
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="search" className="text-xs font-bold">Find Students</TabsTrigger>
+            <TabsTrigger value="assignments" className="text-xs font-bold relative">
+              Homework
+              {assignments.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white">
+                  {assignments.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="search" className="text-xs font-bold">Find</TabsTrigger>
           </TabsList>
 
           <TabsContent value="friends">
@@ -193,7 +231,7 @@ export default function Social({ userId, onChallenge }: SocialProps) {
                   </div>
                 ) : (
                   friends.map((friend) => (
-                    <div key={friend.uid} className="flex items-center justify-between p-3 rounded-lg border border-[#e2e8f0] bg-white group hover:border-blue-400 transition-colors">
+                    <div key={friend.uid} className="flex items-center justify-between p-3 rounded-xl border border-[#e2e8f0] bg-white group hover:border-blue-400 transition-all shadow-sm">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                           <AvatarFallback className="bg-blue-50 text-blue-600 font-black text-xs">
@@ -205,13 +243,58 @@ export default function Social({ userId, onChallenge }: SocialProps) {
                           <Badge variant="secondary" className="text-[10px] px-1 py-0 font-bold">{friend.section}</Badge>
                         </div>
                       </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="text-[10px] font-bold h-8 border-slate-200 hover:bg-slate-50"
+                          onClick={() => assignHomework(friend.uid!, friend.firstName)}
+                        >
+                          <FileText className="w-3 h-3 mr-1" />
+                          Assign
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          className="bg-blue-600 hover:bg-blue-700 text-[10px] font-bold h-8"
+                          onClick={() => onChallenge(friend.uid!, `${friend.firstName} ${friend.lastName}`)}
+                        >
+                          <Swords className="w-3 h-3 mr-1" />
+                          Battle
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="assignments">
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="space-y-3">
+                {assignments.length === 0 ? (
+                  <div className="text-center py-10">
+                    <Check className="w-12 h-12 text-green-100 mx-auto mb-3" />
+                    <p className="text-sm text-slate-400 font-medium">All caught up! No homework pending.</p>
+                  </div>
+                ) : (
+                  assignments.map((assignment) => (
+                    <div key={assignment.id} className="p-4 rounded-xl border-2 border-blue-100 bg-blue-50/30 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-blue-600 p-2 rounded-lg text-white">
+                          <BookOpen className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-slate-900">Assigned by {assignment.fromName}</p>
+                          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">+ {assignment.pointsValue} Extra Points Available</p>
+                        </div>
+                      </div>
                       <Button 
                         size="sm" 
-                        className="bg-blue-600 hover:bg-blue-700 text-[10px] font-bold h-8 gap-2"
-                        onClick={() => onChallenge(friend.uid!, `${friend.firstName} ${friend.lastName}`)}
+                        className="bg-green-600 hover:bg-green-700 text-xs font-black px-4"
+                        onClick={() => onStartAssignment(assignment.id, assignment.questionIndices)}
                       >
-                        <Swords className="w-3 h-3" />
-                        Battle
+                        Start Now
                       </Button>
                     </div>
                   ))

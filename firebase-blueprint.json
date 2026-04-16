@@ -12,6 +12,7 @@
         "correctSolved": { "type": "number" },
         "accuracy": { "type": "number" },
         "timeSpent": { "type": "number" },
+        "socialPoints": { "type": "number" },
         "lastActive": { "type": "string", "format": "date-time" }
       },
       "required": ["firstName", "lastName", "section"]
@@ -67,6 +68,21 @@
         "createdAt": { "type": "string" }
       },
       "required": ["players", "questions", "status", "createdAt"]
+    },
+    "Assignment": {
+      "title": "Assignment",
+      "description": "Peer-assigned practice set",
+      "type": "object",
+      "properties": {
+        "fromId": { "type": "string" },
+        "fromName": { "type": "string" },
+        "toId": { "type": "string" },
+        "questionIndices": { "type": "array" },
+        "status": { "type": "string", "enum": ["pending", "completed"] },
+        "pointsValue": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fromId", "toId", "questionIndices", "status", "createdAt"]
     }
   },
   "firestore": {
@@ -89,6 +105,10 @@
     "/game_sessions/{sessionId}": {
       "schema": "GameSession",
       "description": "Multiplayer sessions"
+    },
+    "/assignments/{assignmentId}": {
+      "schema": "Assignment",
+      "description": "Peer-to-peer challenges"
     }
   }
 }

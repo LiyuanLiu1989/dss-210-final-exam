@@ -13,6 +13,7 @@ interface LeaderboardEntry {
   section: string;
   totalSolved: number;
   correctSolved: number;
+  socialPoints: number;
   accuracy: number;
   timeSpent: number;
 }
@@ -27,12 +28,11 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Sort primarily by timeSpent (effort) 
-    // and secondary accuracy on client
+    // We'll fetch all users in the section (or top 50) and sort by combined XP
     const q = query(
       collection(db, "users"),
-      orderBy("timeSpent", "desc"),
-      limit(isMini ? 10 : 20)
+      orderBy("correctSolved", "desc"),
+      limit(50)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -41,10 +41,11 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
         entries.push(doc.data() as LeaderboardEntry);
       });
       
-      // Secondary sort: Accuracy for those with similar time spent
+      // XP = (Correct Solved * 5) + (Accuracy * 2) + (Time spent * 0.5) + Social Points
       const sorted = [...entries].sort((a, b) => {
-        if (Math.abs(b.timeSpent - a.timeSpent) > 0.1) return b.timeSpent - a.timeSpent;
-        return b.accuracy - a.accuracy;
+        const xpA = (a.correctSolved || 0) * 10 + (a.accuracy || 0) * 5 + (a.timeSpent || 0) * 2 + (a.socialPoints || 0);
+        const xpB = (b.correctSolved || 0) * 10 + (b.accuracy || 0) * 5 + (b.timeSpent || 0) * 2 + (b.socialPoints || 0);
+        return xpB - xpA;
       });
 
       setLeaders(sorted.slice(0, isMini ? 5 : 10));
@@ -58,30 +59,42 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
     <div className={`space-y-6 ${fullWidth ? "w-full" : ""}`}>
       <div className="high-density-card">
         <div className="section-title">
-          <span>Stats Masters</span>
-          <Badge className="bg-red-100 text-red-700 text-[10px] uppercase font-bold">Top Effort</Badge>
+          <span>Mastery Elite</span>
+          <Badge className="bg-blue-600 text-white text-[10px] uppercase font-bold">Balanced Scoring</Badge>
         </div>
         
         <div className="space-y-1">
-          {leaders.map((leader, index) => (
-            <div 
-              key={leader.uid} 
-              className="grid grid-cols-[30px_1fr_40px] gap-2 py-3 border-b border-[#e2e8f0] last:border-0 items-center text-sm"
-            >
-              <div className="font-black text-blue-600/50 italic">#{index + 1}</div>
-              <div className="flex flex-col">
-                <span className="font-bold text-[#1e293b] truncate uppercase tracking-tight">
-                  {leader.firstName} {leader.lastName[0]}.
-                </span>
-                {!isMini && <span className="text-[9px] text-[#64748b] font-black uppercase">{leader.section}</span>}
+          {leaders.map((leader, index) => {
+            const xp = Math.floor((leader.correctSolved || 0) * 10 + (leader.accuracy || 0) * 5 + (leader.timeSpent || 0) * 2 + (leader.socialPoints || 0));
+            return (
+              <div 
+                key={leader.uid || `leader-${index}`} 
+                className="grid grid-cols-[30px_1fr_60px] gap-2 py-4 border-b border-[#e2e8f0] last:border-0 items-center text-sm group"
+              >
+                <div className={`font-black italic flex items-center justify-center h-6 w-6 rounded-full text-[10px] ${
+                  index === 0 ? "bg-amber-100 text-amber-600" :
+                  index === 1 ? "bg-slate-100 text-slate-500" :
+                  index === 2 ? "bg-orange-100 text-orange-600" : "text-slate-300"
+                }`}>
+                  #{index + 1}
+                </div>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-[#1e293b] truncate uppercase tracking-tighter text-base group-hover:text-blue-600 transition-colors">
+                      {leader.firstName} {leader.lastName[0]}.
+                    </span>
+                    {leader.socialPoints > 30 && (
+                       <Zap className="w-3 h-3 text-amber-500 fill-amber-500 animate-pulse" />
+                    )}
+                  </div>
+                </div>
+                <div className="text-right flex flex-col items-end">
+                  <div className="text-base font-black text-blue-600 leading-none">{xp}</div>
+                  <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Power XP</div>
+                </div>
               </div>
-              <div className="text-right">
-                <Badge variant="outline" className="text-[10px] px-1 py-0 font-bold border-blue-100 text-blue-600 bg-blue-50">
-                   {Math.floor(leader.timeSpent || 0)}m
-                </Badge>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           
           {leaders.length === 0 && !loading && (
             <div className="text-center py-8 text-[#64748b] text-xs italic">

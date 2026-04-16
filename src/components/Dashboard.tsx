@@ -12,9 +12,10 @@ interface DashboardProps {
   userId: string;
   onStartPractice: () => void;
   onViewLeaderboard: () => void;
+  onOpenStudyGuide: () => void;
 }
 
-export default function Dashboard({ userId, onStartPractice, onViewLeaderboard }: DashboardProps) {
+export default function Dashboard({ userId, onStartPractice, onViewLeaderboard, onOpenStudyGuide }: DashboardProps) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
@@ -67,7 +68,24 @@ export default function Dashboard({ userId, onStartPractice, onViewLeaderboard }
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div 
+          className="high-density-card hover:border-blue-500 transition-colors cursor-pointer group flex flex-col" 
+          onClick={onOpenStudyGuide}
+        >
+          <div className="section-title">Reference Bank</div>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="bg-purple-50 p-4 rounded-xl group-hover:bg-purple-100 transition-colors">
+              <BookOpen className="w-8 h-8 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">Study Guide</h3>
+              <p className="text-sm text-[#64748b]">Review master formulas and definitions</p>
+            </div>
+          </div>
+          <Button variant="outline" className="mt-auto border-purple-600 text-purple-700 hover:bg-purple-50 font-bold">Open Guide</Button>
+        </div>
+
         <div 
           className="high-density-card hover:border-blue-500 transition-colors cursor-pointer group flex flex-col" 
           onClick={onStartPractice}
@@ -75,14 +93,14 @@ export default function Dashboard({ userId, onStartPractice, onViewLeaderboard }
           <div className="section-title">Practice Arena</div>
           <div className="flex items-center gap-4 mb-6">
             <div className="bg-blue-50 p-4 rounded-xl group-hover:bg-blue-100 transition-colors">
-              <BookOpen className="w-8 h-8 text-blue-600" />
+              <Target className="w-8 h-8 text-blue-600" />
             </div>
             <div>
               <h3 className="font-bold text-lg">Start Practice</h3>
-              <p className="text-sm text-[#64748b]">Generate new problems based on exam topics</p>
+              <p className="text-sm text-[#64748b]">Solve specific exam worksheet problems</p>
             </div>
           </div>
-          <Button className="mt-auto bg-blue-600 hover:bg-blue-700 font-bold">Start Now</Button>
+          <Button className="mt-auto bg-blue-600 hover:bg-blue-700 font-bold">Start Session</Button>
         </div>
 
         <div 
@@ -96,10 +114,10 @@ export default function Dashboard({ userId, onStartPractice, onViewLeaderboard }
             </div>
             <div>
               <h3 className="font-bold text-lg">Leaderboard</h3>
-              <p className="text-sm text-[#64748b]">See how you rank against your classmates</p>
+              <p className="text-sm text-[#64748b]">Compare your scores with classmates</p>
             </div>
           </div>
-          <Button variant="outline" className="mt-auto border-blue-600 text-blue-700 hover:bg-blue-50 font-bold">View Rankings</Button>
+          <Button variant="outline" className="mt-auto border-[#1e293b] text-[#1e293b] hover:bg-slate-50 font-bold">View Rankings</Button>
         </div>
       </div>
     </div>

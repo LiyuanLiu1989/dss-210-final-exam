@@ -23,5 +23,9 @@ service cloud.firestore {
     match /game_sessions/{sessionId} {
       allow read, write: if true;
     }
+
+    match /assignments/{assignmentId} {
+      allow read, write: if true;
+    }
   }
 }

@@ -11,7 +11,7 @@ import {
   deleteDoc
 } from "firebase/firestore";
 import { Question, GameSession, UserProfile } from "../types";
-import { generateSimilarQuestion } from "../services/geminiService";
+import { STATIC_QUESTIONS } from "../staticQuestions";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
