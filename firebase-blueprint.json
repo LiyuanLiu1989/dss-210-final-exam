@@ -1,0 +1,93 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and statistics",
+      "type": "object",
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "section": { "type": "string" },
+        "totalSolved": { "type": "number" },
+        "correctSolved": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "lastActive": { "type": "string", "format": "date-time" }
+      },
+      "required": ["firstName", "lastName", "section"]
+    },
+    "Question": {
+      "title": "Question",
+      "description": "Practice question",
+      "type": "object",
+      "properties": {
+        "topic": { "type": "string" },
+        "content": { "type": "string" },
+        "options": { "type": "array" },
+        "correctOptionIndex": { "type": "number" },
+        "explanation": { "type": "string" },
+        "difficulty": { "type": "string" }
+      },
+      "required": ["topic", "content", "options", "correctOptionIndex"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "User's answer to a question",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "topic": { "type": "string" },
+        "isCorrect": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "topic", "isCorrect", "timestamp"]
+    },
+    "Friendship": {
+      "title": "Friendship",
+      "description": "Friend request or connection between users",
+      "type": "object",
+      "properties": {
+        "uids": { "type": "array" },
+        "status": { "type": "string" },
+        "senderId": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["uids", "status", "senderId", "timestamp"]
+    },
+    "GameSession": {
+      "title": "GameSession",
+      "description": "Multiplayer quiz battle session",
+      "type": "object",
+      "properties": {
+        "players": { "type": "object" },
+        "questions": { "type": "array" },
+        "status": { "type": "string" },
+        "activePlayerUids": { "type": "array" },
+        "winnerId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["players", "questions", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/questions/{questionId}": {
+      "schema": "Question",
+      "description": "Practice questions"
+    },
+    "/submissions/{submissionId}": {
+      "schema": "Submission",
+      "description": "User submissions"
+    },
+    "/friendships/{friendshipId}": {
+      "schema": "Friendship",
+      "description": "Friend relationships"
+    },
+    "/game_sessions/{sessionId}": {
+      "schema": "GameSession",
+      "description": "Multiplayer sessions"
+    }
+  }
+}

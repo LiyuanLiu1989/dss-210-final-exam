@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+    }
+    
+    match /submissions/{submissionId} {
+      allow read: if true;
+      allow create: if true;
+    }
+    
+    match /questions/{questionId} {
+      allow read: if true;
+    }
+
+    match /friendships/{friendshipId} {
+      allow read, write: if true;
+    }
+
+    match /game_sessions/{sessionId} {
+      allow read, write: if true;
+    }
+  }
+}
