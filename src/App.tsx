@@ -31,12 +31,13 @@ import {
   where, 
   doc, 
   getDoc, 
+  getDocs,
   addDoc, 
   updateDoc,
   deleteDoc
 } from "firebase/firestore";
-import { GameSession, UserProfile } from "./types";
-import { generateSimilarQuestion } from "./services/geminiService";
+import { GameSession, UserProfile, Question } from "./types";
+import { generateSimilarQuestion, generateBatchQuestions } from "./services/geminiService";
 import { toast } from "sonner";
 import { Button } from "./components/ui/button";
 
@@ -100,13 +101,25 @@ export default function App() {
   };
 
   const handleChallenge = async (friendId: string, friendName: string) => {
-    toast.loading("Preparing battle questions...");
+    toast.loading("Finding questions in the bank...");
     try {
-      const questionsData = await Promise.all([
-        generateSimilarQuestion(),
-        generateSimilarQuestion(),
-        generateSimilarQuestion()
-      ]);
+      // Pull questions from the bank
+      const questionsSnap = await getDocs(collection(db, "questions"));
+      let questions = questionsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as any as Question));
+
+      // Refill if empty
+      if (questions.length < 3) {
+        toast.info("Bank empty. Generating fresh battle problems...");
+        const newBatch = await generateBatchQuestions(10);
+        const savePromises = newBatch.map(q => addDoc(collection(db, "questions"), q));
+        await Promise.all(savePromises);
+        questions = newBatch;
+      }
+
+      // Select 3 random questions
+      const selectedQuestions = questions
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3);
 
       const players = {
         [userId!]: { name: userName, score: 0, finished: false, answers: [] },
@@ -115,7 +128,7 @@ export default function App() {
 
       const docRef = await addDoc(collection(db, "game_sessions"), {
         players,
-        questions: questionsData,
+        questions: selectedQuestions,
         status: "waiting",
         activePlayerUids: [userId!, friendId],
         createdAt: new Date().toISOString()
@@ -123,10 +136,11 @@ export default function App() {
 
       setActiveBattleId(docRef.id);
       toast.dismiss();
-      toast.success("Challenge sent! Entering the arena...");
+      toast.success("Ready for Battle!");
     } catch (error) {
       toast.dismiss();
       toast.error("Failed to start battle.");
+      console.error(error);
     }
   };
 

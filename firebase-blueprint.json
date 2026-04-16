@@ -11,6 +11,7 @@
         "totalSolved": { "type": "number" },
         "correctSolved": { "type": "number" },
         "accuracy": { "type": "number" },
+        "timeSpent": { "type": "number" },
         "lastActive": { "type": "string", "format": "date-time" }
       },
       "required": ["firstName", "lastName", "section"]

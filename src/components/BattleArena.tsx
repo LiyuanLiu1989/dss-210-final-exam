@@ -31,6 +31,7 @@ export default function BattleArena({ userId, sessionId, onClose }: BattleArenaP
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [startTime] = useState<number>(Date.now());
 
   useEffect(() => {
     if (!sessionId) return;
@@ -92,6 +93,21 @@ export default function BattleArena({ userId, sessionId, onClose }: BattleArenaP
         status: nextStatus,
         winnerId: winnerId
       });
+
+      // Also update user's timeSpent if they finished
+      if (player.finished) {
+        const endTime = Date.now();
+        const durationMinutes = (endTime - startTime) / 60000;
+        const userRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          await updateDoc(userRef, {
+            timeSpent: (userData.timeSpent || 0) + durationMinutes,
+            lastActive: new Date().toISOString()
+          });
+        }
+      }
 
       setSelectedOption(null);
       if (!player.finished) {

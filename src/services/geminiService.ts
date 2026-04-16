@@ -48,15 +48,7 @@ export async function generateSimilarQuestion(topic?: string): Promise<Question>
     Provide 4 multiple-choice options.
     Provide a detailed step-by-step explanation for the correct answer.
 
-    Return the result in JSON format with the following structure:
-    {
-      "topic": "string",
-      "content": "string",
-      "options": ["string", "string", "string", "string"],
-      "correctOptionIndex": number (0-3),
-      "explanation": "string",
-      "difficulty": "easy" | "medium" | "hard"
-    }
+    Return the result in JSON format.
   `;
 
   try {
@@ -83,6 +75,52 @@ export async function generateSimilarQuestion(topic?: string): Promise<Question>
     return JSON.parse(response.text || "{}") as Question;
   } catch (error) {
     console.error("Error generating question:", error);
+    throw error;
+  }
+}
+
+export async function generateBatchQuestions(count: number = 5): Promise<Question[]> {
+  const prompt = `
+    You are a statistics professor creating practice problems for a final exam.
+    Based on the following context of existing problems:
+    ${CONTEXT_OCR}
+
+    Generate ${count} new practice questions.
+    Ensure variety across these topics: ${TOPICS.join(", ")}.
+    Each question should use a different application/scenario.
+    Provide 4 multiple-choice options for each.
+    Provide a detailed step-by-step explanation for the correct answer.
+
+    Return the result as a JSON array of questions.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              topic: { type: Type.STRING },
+              content: { type: Type.STRING },
+              options: { type: Type.ARRAY, items: { type: Type.STRING } },
+              correctOptionIndex: { type: Type.NUMBER },
+              explanation: { type: Type.STRING },
+              difficulty: { type: Type.STRING, enum: ["easy", "medium", "hard"] }
+            },
+            required: ["topic", "content", "options", "correctOptionIndex", "explanation", "difficulty"]
+          }
+        }
+      }
+    });
+
+    return JSON.parse(response.text || "[]") as Question[];
+  } catch (error) {
+    console.error("Error generating batch:", error);
     throw error;
   }
 }

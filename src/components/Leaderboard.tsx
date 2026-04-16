@@ -14,6 +14,7 @@ interface LeaderboardEntry {
   totalSolved: number;
   correctSolved: number;
   accuracy: number;
+  timeSpent: number;
 }
 
 interface LeaderboardProps {
@@ -26,10 +27,12 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Sort primarily by timeSpent (effort) 
+    // and secondary accuracy on client
     const q = query(
       collection(db, "users"),
-      orderBy("correctSolved", "desc"),
-      limit(isMini ? 5 : 10)
+      orderBy("timeSpent", "desc"),
+      limit(isMini ? 10 : 20)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -37,7 +40,14 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
       snapshot.forEach((doc) => {
         entries.push(doc.data() as LeaderboardEntry);
       });
-      setLeaders(entries);
+      
+      // Secondary sort: Accuracy for those with similar time spent
+      const sorted = [...entries].sort((a, b) => {
+        if (Math.abs(b.timeSpent - a.timeSpent) > 0.1) return b.timeSpent - a.timeSpent;
+        return b.accuracy - a.accuracy;
+      });
+
+      setLeaders(sorted.slice(0, isMini ? 5 : 10));
       setLoading(false);
     });
 
@@ -48,27 +58,26 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
     <div className={`space-y-6 ${fullWidth ? "w-full" : ""}`}>
       <div className="high-density-card">
         <div className="section-title">
-          <span>Top Rankings</span>
-          <Badge className="bg-red-100 text-red-700 text-[10px] uppercase font-bold">Live</Badge>
+          <span>Stats Masters</span>
+          <Badge className="bg-red-100 text-red-700 text-[10px] uppercase font-bold">Top Effort</Badge>
         </div>
         
         <div className="space-y-1">
           {leaders.map((leader, index) => (
             <div 
               key={leader.uid} 
-              className="grid grid-cols-[24px_1fr_60px_50px] gap-2 py-3 border-b border-[#e2e8f0] last:border-0 items-center text-sm"
+              className="grid grid-cols-[30px_1fr_40px] gap-2 py-3 border-b border-[#e2e8f0] last:border-0 items-center text-sm"
             >
-              <div className="font-bold text-[#64748b]">{index + 1}</div>
+              <div className="font-black text-blue-600/50 italic">#{index + 1}</div>
               <div className="flex flex-col">
-                <span className="font-semibold text-[#1e293b] truncate">{leader.firstName} {leader.lastName}</span>
-                {!isMini && <span className="text-[10px] text-[#64748b] uppercase font-bold">{leader.section}</span>}
-              </div>
-              <div className="text-right font-bold text-blue-600">
-                {leader.correctSolved}
+                <span className="font-bold text-[#1e293b] truncate uppercase tracking-tight">
+                  {leader.firstName} {leader.lastName[0]}.
+                </span>
+                {!isMini && <span className="text-[9px] text-[#64748b] font-black uppercase">{leader.section}</span>}
               </div>
               <div className="text-right">
-                <Badge variant="secondary" className="text-[10px] px-1 py-0 font-bold">
-                  {Math.round(leader.accuracy)}%
+                <Badge variant="outline" className="text-[10px] px-1 py-0 font-bold border-blue-100 text-blue-600 bg-blue-50">
+                   {Math.floor(leader.timeSpent || 0)}m
                 </Badge>
               </div>
             </div>

@@ -6,6 +6,7 @@ export interface UserProfile {
   totalSolved: number;
   correctSolved: number;
   accuracy: number;
+  timeSpent: number; // minutes
   lastActive: string;
 }
 

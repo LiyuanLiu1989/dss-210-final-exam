@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { db } from "../lib/firebase";
-import { collection, addDoc, doc, updateDoc, getDoc } from "firebase/firestore";
-import { generateSimilarQuestion, Question } from "../services/geminiService";
+import { collection, addDoc, doc, updateDoc, getDoc, getDocs, limit, query } from "firebase/firestore";
+import { generateBatchQuestions, Question } from "../services/geminiService";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, XCircle, ArrowRight, BookOpen } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, ArrowRight, BookOpen, Database } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface PracticeProps {
@@ -20,19 +20,58 @@ export default function Practice({ userId }: PracticeProps) {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [startTime, setStartTime] = useState<number>(Date.now());
+  const [bankSize, setBankSize] = useState(0);
+  const [isBulkRefilling, setIsBulkRefilling] = useState(false);
+  const [refillProgress, setRefillProgress] = useState(0);
 
-  const fetchNewQuestion = async () => {
+  const fetchNewQuestion = async (forceBulk: boolean = false) => {
+    if (forceBulk) setIsBulkRefilling(true);
     setLoading(true);
     setSelectedOption(null);
     setSubmitted(false);
     setShowExplanation(false);
+    setStartTime(Date.now());
+    
     try {
-      const newQuestion = await generateSimilarQuestion();
-      setQuestion(newQuestion);
+      // 1. Check if we have questions in the bank
+      const qSnap = await getDocs(collection(db, "questions"));
+      let questions = qSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as any as Question));
+      
+      // 2. If bank is low OR forceBulk is requested
+      if (questions.length < 5 || forceBulk) {
+        const target = forceBulk ? 50 : 10;
+        setRefillProgress(0);
+        
+        // Use batches to avoid timeouts (batches of 10)
+        const batchSize = 10;
+        const iterations = Math.ceil(target / batchSize);
+        
+        for(let i=0; i<iterations; i++) {
+          const newBatch = await generateBatchQuestions(batchSize);
+          const savePromises = newBatch.map(q => addDoc(collection(db, "questions"), q));
+          await Promise.all(savePromises);
+          setRefillProgress(Math.round(((i + 1) / iterations) * 100));
+        }
+        
+        // Refetch after saving
+        const refreshedSnap = await getDocs(collection(db, "questions"));
+        questions = refreshedSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as any as Question));
+        toast.success(`Successfully added questions to the class bank!`);
+      }
+      
+      setBankSize(questions.length);
+
+      if (questions.length > 0) {
+        const randomIndex = Math.floor(Math.random() * questions.length);
+        setQuestion(questions[randomIndex]);
+      }
     } catch (error) {
-      toast.error("Failed to generate question. Please try again.");
+      toast.error("Failed to fetch questions. Please try again.");
+      console.error(error);
     } finally {
       setLoading(false);
+      setIsBulkRefilling(false);
     }
   };
 
@@ -45,9 +84,10 @@ export default function Practice({ userId }: PracticeProps) {
 
     const isCorrect = selectedOption === question.correctOptionIndex;
     setSubmitted(true);
+    const endTime = Date.now();
+    const sessionMinutes = (endTime - startTime) / 60000;
 
     try {
-      // Save submission
       await addDoc(collection(db, "submissions"), {
         userId: userId,
         topic: question.topic,
@@ -55,17 +95,19 @@ export default function Practice({ userId }: PracticeProps) {
         timestamp: new Date().toISOString()
       });
 
-      // Update user stats
       const userRef = doc(db, "users", userId);
       const userDoc = await getDoc(userRef);
       if (userDoc.exists()) {
         const data = userDoc.data();
         const newTotal = (data.totalSolved || 0) + 1;
         const newCorrect = (data.correctSolved || 0) + (isCorrect ? 1 : 0);
+        const newTimeSpent = (data.timeSpent || 0) + sessionMinutes;
+        
         await updateDoc(userRef, {
           totalSolved: newTotal,
           correctSolved: newCorrect,
           accuracy: (newCorrect / newTotal) * 100,
+          timeSpent: newTimeSpent,
           lastActive: new Date().toISOString()
         });
       }
@@ -84,7 +126,23 @@ export default function Practice({ userId }: PracticeProps) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh]">
         <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
-        <p className="text-[#64748b] font-medium">Generating a fresh practice problem...</p>
+        <p className="text-[#64748b] font-bold italic mb-4">
+          {isBulkRefilling ? "Building Statistics Question Bank..." : "Scanning Question Bank..."}
+        </p>
+        {isBulkRefilling && (
+          <div className="w-64 space-y-2">
+            <div className="flex justify-between text-[10px] font-black uppercase text-blue-600 tracking-widest">
+              <span>Generating Problems</span>
+              <span>{refillProgress}%</span>
+            </div>
+            <div className="h-1.5 w-full bg-blue-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-blue-600 transition-all duration-500" 
+                style={{ width: `${refillProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -94,11 +152,26 @@ export default function Practice({ userId }: PracticeProps) {
   return (
     <div className="space-y-6">
       <div className="high-density-card">
-        <div className="section-title">
-          <span>{question.topic}</span>
-          <Badge variant={question.difficulty === "easy" ? "secondary" : question.difficulty === "medium" ? "default" : "destructive"} className="text-[10px] uppercase font-bold">
-            {question.difficulty}
-          </Badge>
+        <div className="section-title flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <span>{question.topic}</span>
+            <Badge variant={question.difficulty === "easy" ? "secondary" : question.difficulty === "medium" ? "default" : "destructive"} className="text-[10px] uppercase font-bold">
+              {question.difficulty}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+            <Database className="w-3 h-3" />
+            Bank: {bankSize}
+            <Button 
+              variant="ghost" 
+              className="h-5 px-1 ml-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+              onClick={() => fetchNewQuestion(true)}
+              title="Seed 50 more questions"
+            >
+              <ArrowRight className="w-2 h-2 rotate-90" />
+              +50
+            </Button>
+          </div>
         </div>
         
         <div className="text-lg leading-relaxed text-[#1e293b] mb-8 font-medium">
@@ -156,7 +229,7 @@ export default function Practice({ userId }: PracticeProps) {
               </Button>
               <Button 
                 className="flex-1 bg-blue-600 hover:bg-blue-700 font-bold py-6"
-                onClick={fetchNewQuestion}
+                onClick={() => fetchNewQuestion()}
               >
                 Next Problem
                 <ArrowRight className="w-4 h-4 ml-2" />

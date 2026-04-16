@@ -45,20 +45,25 @@ export default function Dashboard({ userId, onStartPractice, onViewLeaderboard }
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
         <div className="stat-box high-density-card flex flex-col items-center justify-center py-8">
-          <div className="text-3xl font-black text-[#1e293b]">{profile.totalSolved}</div>
+          <div className="text-2xl font-black text-[#1e293b]">{profile.totalSolved}</div>
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#64748b] mt-2">Total Solved</div>
         </div>
 
         <div className="stat-box high-density-card flex flex-col items-center justify-center py-8">
-          <div className="text-3xl font-black text-[#1e293b]">{Math.round(profile.accuracy)}%</div>
+          <div className="text-2xl font-black text-[#1e293b]">{Math.round(profile.accuracy)}%</div>
           <div className="text-[10px] font-bold uppercase tracking-widest text-[#64748b] mt-2">Accuracy</div>
         </div>
 
         <div className="stat-box high-density-card flex flex-col items-center justify-center py-8">
-          <div className="text-3xl font-black text-[#1e293b]">{profile.correctSolved}</div>
-          <div className="text-[10px] font-bold uppercase tracking-widest text-[#64748b] mt-2">Correct Answers</div>
+          <div className="text-2xl font-black text-[#1e293b]">{profile.correctSolved}</div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-[#64748b] mt-2">Correct</div>
+        </div>
+
+        <div className="stat-box high-density-card flex flex-col items-center justify-center py-8">
+          <div className="text-2xl font-black text-blue-600">{Math.floor(profile.timeSpent || 0)}m</div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-[#64748b] mt-2">Time Spent</div>
         </div>
       </div>
 
