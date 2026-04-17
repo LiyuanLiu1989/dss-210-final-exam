@@ -7,7 +7,7 @@ export const STATIC_QUESTIONS: Question[] = [
     content: "Employee Workplace Survey: The HR team randomly chooses 6 office buildings and collects responses from every employee working in those locations. What type of sampling is this?",
     options: ["Cluster Sampling", "Convenience Sampling", "Systematic Sampling", "Stratified Sampling"],
     correctOptionIndex: 0,
-    explanation: "Entire groups (office buildings) are selected, and every individual within those groups is surveyed.",
+    explanation: "Cluster Sampling involves dividing the population into groups (clusters), randomly picking entire clusters, and surveying every individual within them. Here, office buildings are the clusters.",
     difficulty: "easy"
   },
   {
@@ -15,7 +15,7 @@ export const STATIC_QUESTIONS: Question[] = [
     content: "Employee Workplace Survey: An HR representative interviews employees who happen to be leaving the cafeteria during lunch. What type of sampling is this?",
     options: ["Cluster Sampling", "Convenience Sampling", "Systematic Sampling", "Stratified Sampling"],
     correctOptionIndex: 1,
-    explanation: "The researcher chooses participants who are easiest to reach at a specific location.",
+    explanation: "Convenience Sampling is a non-probability method where researchers choose participants based on easy availability (e.g., people walking by) rather than random selection.",
     difficulty: "easy"
   },
   {
@@ -23,7 +23,7 @@ export const STATIC_QUESTIONS: Question[] = [
     content: "Employee Workplace Survey: The offices are arranged alphabetically, and every 4th office is selected for the survey. What type of sampling is this?",
     options: ["Cluster Sampling", "Convenience Sampling", "Systematic Sampling", "Stratified Sampling"],
     correctOptionIndex: 2,
-    explanation: "Selecting members at a fixed, periodic interval from a list is systematic sampling.",
+    explanation: "Systematic Sampling involves selecting every 'kth' (in this case, 4th) item from an ordered list. The interval k is determined by the required sample size and population list.",
     difficulty: "easy"
   },
   {
@@ -39,7 +39,7 @@ export const STATIC_QUESTIONS: Question[] = [
     content: "Employee Workplace Survey: Employees are first separated by job role (managers and staff), then 20% are randomly selected from each group. What type of sampling is this?",
     options: ["Cluster Sampling", "Convenience Sampling", "Systematic Sampling", "Stratified Sampling"],
     correctOptionIndex: 3,
-    explanation: "The population is divided into strata based on a characteristic, and samples are taken from each category.",
+    explanation: "Stratified Sampling involves dividing the population into sub-groups (strata) based on a specific characteristic (like job role) and then taking a random sample from each stratum to ensure representation.",
     difficulty: "medium"
   },
   {
@@ -168,7 +168,7 @@ export const STATIC_QUESTIONS: Question[] = [
     content: "Printer Quality: A printer is calibrated correctly 80% of the time. If calibrated, it prints a clear label 92% of the time. If not calibrated, it prints a clear label 35% of the time. If the first label is clear, what is the revised probability it was calibrated correctly?",
     options: ["0.8000", "0.9132", "0.7360", "0.0700"],
     correctOptionIndex: 1,
-    explanation: "P(C|G) = (0.92*0.80)/(0.736+0.070) = 0.736/0.806 ≈ 0.9132.",
+    explanation: "This is a Bayes' Theorem problem ($P(A|B)$). \n1. $P(\text{Calibrated}) = 0.80$ \n2. $P(\text{Clear}|\text{Calibrated}) = 0.92$ \n3. $P(\text{Clear}|\text{Not Calibrated}) = 0.35$ \nFormula: $\\frac{0.80 \\times 0.92}{(0.80 \\times 0.92) + (0.20 \\times 0.35)} = \\frac{0.736}{0.736 + 0.07} = 0.9132$.",
     difficulty: "hard"
   },
   {
@@ -184,7 +184,7 @@ export const STATIC_QUESTIONS: Question[] = [
     content: "Medical Scanner: A scanner is properly configured 75% of the time. If configured, it gives a readable image 96% of the time. If not, it gives a readable image 45% of the time. If the first image is readable, what is the revised probability it was configured correctly?",
     options: ["0.7500", "0.8649", "0.7200", "0.9600"],
     correctOptionIndex: 1,
-    explanation: "P(P|R) = (0.96*0.75)/(0.72+0.1125) = 0.72/0.8325 ≈ 0.8649.",
+    explanation: "This is a Bayes' Theorem problem ($P(A|B)$). \n1. **Prior:** $P(\\text{Properly Configured}) = 0.75$ \n2. **Likelihood:** $P(\\text{Readable}|\\text{Proper}) = 0.96$. \n3. **Failure Likelihood:** $P(\\text{Readable}|\\text{Not Proper}) = 0.45$. \n**Calculation:** $\\frac{0.75 \\times 0.96}{(0.75 \\times 0.96) + (0.25 \\times 0.45)} = \\frac{0.72}{0.72 + 0.1125} = 0.8649$.",
     difficulty: "hard"
   },
   {
@@ -361,7 +361,7 @@ export const STATIC_QUESTIONS: Question[] = [
     content: "Labrador Retriever Weights: Mean weight is 72 lbs, std deviation is 8 lbs. What is the probability that a randomly selected Labrador weighs MORE than 70 pounds?",
     options: ["=1-NORM.DIST(70,72,8,TRUE)", "=NORM.DIST(70,72,8,TRUE)", "=1-NORM.DIST(72,70,8,TRUE)", "=NORM.S.DIST(70,TRUE)"],
     correctOptionIndex: 0,
-    explanation: "To find P(X > 70), we calculate 1 minus the cumulative probability up to 70.",
+    explanation: "To find the probability of 'MORE than', we calculate the area to the right. \nIn Excel: \n1. `=NORM.DIST(x, mean, sd, TRUE)` calculates the area to the LEFT (cumulative). \n2. To get the area to the RIGHT, we use `1 - NORM.DIST(...)`.",
     difficulty: "medium"
   },
   {
@@ -369,7 +369,7 @@ export const STATIC_QUESTIONS: Question[] = [
     content: "Labrador Weights (Mean 72, SD 8): What is the probability that the mean weight of 36 Labradors is MORE than 75 pounds?",
     options: ["=1-NORM.DIST(75,72,8/SQRT(36),TRUE)", "=NORM.DIST(75,72,8/6,TRUE)", "=1-NORM.DIST(75,72,8,TRUE)", "=1-NORM.S.DIST(75,TRUE)"],
     correctOptionIndex: 0,
-    explanation: "For the sample mean, the standard deviation is adjusted by the square root of n (SE = σ/√n).",
+    explanation: "For the sample mean, we must use the Central Limit Theorem. \n1. **Standard Error ($SE$):** $\\sigma / \\sqrt{n} = 8 / \\sqrt{36} = 1.333$. \n2. **Excel:** Always use the $SE$ in the third argument instead of the standard deviation.",
     difficulty: "hard"
   },
   {
@@ -377,7 +377,7 @@ export const STATIC_QUESTIONS: Question[] = [
     content: "Commute Times: Mean morning commute is 42 mins, SD is 6 mins. What is the probability that ONE commuter takes more than 45 minutes?",
     options: ["=1-NORM.DIST(45,42,6,TRUE)", "=NORM.DIST(45,42,6,TRUE)", "=1-NORM.DIST(42,45,6,TRUE)", "=NORM.DIST(45,42,6,FALSE)"],
     correctOptionIndex: 0,
-    explanation: "P(X > 45) = 1 - P(X < 45).",
+    explanation: "This problem asks for an 'Upper Tail' probability (More Than). \n1. In Excel, `NORM.DIST(x, mean, sd, TRUE)` always gives the area to the LEFT (cumulative). \n2. To find the area to the RIGHT (more than), you must subtract the left area from the total area (1). \n**Formula:** `=1-NORM.DIST(45,42,6,TRUE)`.",
     difficulty: "medium"
   },
   {
@@ -385,7 +385,7 @@ export const STATIC_QUESTIONS: Question[] = [
     content: "Battery Life: Mean life is 18 hours, SD is 2.5 hours. What is the probability that one phone lasts MORE than 20 hours?",
     options: ["=1-NORM.DIST(20,18,2.5,TRUE)", "=NORM.DIST(20,18,2.5,TRUE)", "=1-NORM.DIST(18,20,2.5,TRUE)", "=NORM.DIST(20,18,2.5,FALSE)"],
     correctOptionIndex: 0,
-    explanation: "Calculating upper tail probability using Excel's NORM.DIST.",
+    explanation: "1. For a single observation ($n=1$), we use the population standard deviation directly.\n2. Since we want the probability of lasting 'MORE than' 20 hours, we calculate 1 minus the cumulative probability up to 20.\n**Excel Syntax:** `=1-NORM.DIST(20, 18, 2.5, TRUE)`.",
     difficulty: "medium"
   },
   {
@@ -393,7 +393,7 @@ export const STATIC_QUESTIONS: Question[] = [
     content: "Package Delivery: Average delivery time is 52 mins, SD is 9 mins. What is the probability that one package takes MORE than 55 minutes?",
     options: ["=1-NORM.DIST(55,52,9,TRUE)", "=NORM.DIST(55,52,9,TRUE)", "=1-NORM.DIST(52,55,9,TRUE)", "0.55"],
     correctOptionIndex: 0,
-    explanation: "P(X > 55) = 1 - P(X < 55).",
+    explanation: "1. Identify the 'More Than' requirement which signals an Upper Tail calculation.\n2. In Excel, take 1 minus the probability for a delivery time of 55 minutes, with a mean of 52 and SD of 9.\n**Formula:** `=1 - NORM.DIST(55, 52, 9, TRUE)`.",
     difficulty: "medium"
   },
   {
@@ -482,6 +482,135 @@ export const STATIC_QUESTIONS: Question[] = [
     options: ["=1-NORM.DIST(90,84,12,TRUE)", "=NORM.DIST(90,84,12,TRUE)", "=1-NORM.DIST(84,90,12,TRUE)", "0.84"],
     correctOptionIndex: 0,
     explanation: "Price probability calculation.",
+    difficulty: "medium"
+  },
+  // 61-70: HYPOTHESIS TESTING & CONFIDENCE INTERVALS (NEW)
+  {
+    topic: "Hypothesis Testing",
+    content: "A factory claims their lightbulbs last 1000 hours. A researcher suspects the bulbs last LESS than 1000 hours. They find a Z-score of -1.82. Which Excel formula finds the p-value for this LOWER-TAIL test?",
+    options: ["=NORM.DIST(-1.82,0,1,TRUE)", "=1-NORM.DIST(-1.82,0,1,TRUE)", "=2*NORM.DIST(-1.82,0,1,TRUE)", "=NORM.S.INV(0.05)"],
+    correctOptionIndex: 0,
+    explanation: "For a Lower-Tail test ($H_A: \\mu < \\mu_0$), the p-value is simply the area to the left of the Z-score. In Excel, `=NORM.DIST(z, 0, 1, TRUE)` provides this direct cumulative probability.",
+    difficulty: "hard"
+  },
+  {
+    topic: "Hypothesis Testing",
+    content: "A researcher is conducting a TWO-TAILED Z-test and calculates a Z-score of 2.15. What is the correct Excel syntax to find the p-value?",
+    options: ["=2*(1-NORM.DIST(2.15,0,1,TRUE))", "=1-NORM.DIST(2.15,0,1,TRUE)", "=2*NORM.DIST(2.15,0,1,TRUE)", "=NORM.DIST(2.15,0,1,TRUE)"],
+    correctOptionIndex: 0,
+    explanation: "Since the test is two-tailed and $z > 0$, we find the area in the upper tail $(1 - \\text{NORM.DIST})$ and multiply by 2 to account for both tails. Formula: `=2*(1-NORM.DIST(z, 0, 1, TRUE))`.",
+    difficulty: "hard"
+  },
+  {
+    topic: "Hypothesis Testing",
+    content: "If a statistical test results in a p-value of 0.034 and the significance level (α) is 0.05, what is the correct technical conclusion?",
+    options: ["Reject H0, can support conclusion", "Fail to reject H0, cannot support conclusion", "Reject HA, can support conclusion", "Accept H0, reject HA"],
+    correctOptionIndex: 0,
+    explanation: "Since $p (0.034) \\le \\alpha (0.05)$, we **Reject $H_0$** and **Fail to Reject $H_A$**. This means we have enough evidence to **can support** the research conclusion.",
+    difficulty: "medium"
+  },
+  {
+    topic: "Confidence Intervals",
+    content: "Which of the following $Z^*$ critical values should be used for a 95% Confidence Interval?",
+    options: ["1.960", "1.645", "2.576", "1.751"],
+    correctOptionIndex: 0,
+    explanation: "For a 95% Confidence Interval, the standard $Z^*$ critical value is 1.960. This leaves 2.5% in each tail.",
+    difficulty: "easy"
+  },
+  {
+    topic: "Confidence Intervals",
+    content: "A researcher wants to be MORE certain about their estimate. What happens to the Confidence Interval if they change from 95% confidence to 99% confidence (assuming same data)?",
+    options: ["The interval gets wider", "The interval gets narrower", "The interval stays the same", "The mean increases"],
+    correctOptionIndex: 0,
+    explanation: "Increasing the confidence level increases the $Z^*$ critical value (e.g., from 1.96 to 2.576). A larger $Z^*$ results in a larger Margin of Error, making the interval **wider**.",
+    difficulty: "medium"
+  },
+  {
+    topic: "Hypothesis Testing",
+    content: "An HR manager wants to test if the average employee works MORE than 40 hours. $H_0: \\mu = 40, H_A: \\mu > 40$. She finds $z = 2.45$. What is the p-value formula?",
+    options: ["=1-NORM.DIST(2.45,0,1,TRUE)", "=NORM.DIST(2.45,0,1,TRUE)", "=2*(1-NORM.DIST(2.45,0,1,TRUE))", "=NORM.S.INV(0.975)"],
+    correctOptionIndex: 0,
+    explanation: "This is an Upper-Tail test ($H_A: \\mu > \\mu_0$). We need the area to the right of $z=2.45$. Syntax: `=1-NORM.DIST(z, 0, 1, TRUE)`.",
+    difficulty: "hard"
+  },
+  {
+    topic: "Hypothesis Testing",
+    content: "In a Two-Tailed Z-test, the Z-score is -1.96. What is the correct p-value formula?",
+    options: ["=2*NORM.DIST(-1.96,0,1,TRUE)", "=NORM.DIST(-1.96,0,1,TRUE)", "=2*(1-NORM.DIST(-1.96,0,1,TRUE))", "=1-NORM.DIST(-1.96,0,1,TRUE)"],
+    correctOptionIndex: 0,
+    explanation: "Since $z < 0$, we find the left tail and multiply by 2. Formula: `=2*NORM.DIST(z, 0, 1, TRUE)`.",
+    difficulty: "hard"
+  },
+  {
+    topic: "Hypothesis Testing",
+    content: "If $p = 0.08$ and $\\alpha = 0.05$, what is the conclusion?",
+    options: ["Fail to reject H0, reject HA", "Reject H0, can support HA", "Accept H0, accept HA", "Insufficient data"],
+    correctOptionIndex: 0,
+    explanation: "Since $p (0.08) > \\alpha (0.05)$, we **Fail to Reject $H_0$** and **Reject $H_A$**. We cannot support the research conclusion.",
+    difficulty: "medium"
+  },
+  {
+    topic: "Confidence Intervals",
+    content: "If $n=64, \\sigma=10, \\bar{x}=50$, what is the Margin of Error for a 95% Confidence Interval ($Z^* = 1.96$)?",
+    options: ["2.45", "1.96", "1.25", "5.00"],
+    correctOptionIndex: 0,
+    explanation: "$ME = Z^* \\times (\\sigma/\\sqrt{n}) = 1.96 \\times (10/8) = 1.96 \\times 1.25 = 2.45$.",
+    difficulty: "hard"
+  },
+  {
+    topic: "Confidence Intervals",
+    content: "Which distribution is used for a Confidence Interval when the population standard deviation (σ) is NOT known?",
+    options: ["T-distribution", "Z-distribution", "Binomial", "F-distribution"],
+    correctOptionIndex: 0,
+    explanation: "If σ is unknown, we must estimate it using the sample standard deviation $s$ and use the T-distribution.",
+    difficulty: "easy"
+  },
+  {
+    topic: "Excel",
+    content: "In Excel, which formula finds the Z-score such that 95% of the area is to its LEFT in a standard normal distribution?",
+    options: ["=NORM.S.INV(0.95)", "=NORM.S.DIST(0.95, TRUE)", "=NORM.INV(0.95, 0, 1)", "=NORM.S.INV(0.05)"],
+    correctOptionIndex: 0,
+    explanation: "`NORM.S.INV` takes the probability and returns the corresponding Z-score.",
+    difficulty: "medium"
+  },
+  {
+    topic: "Excel",
+    content: "Which formula calculates the probability that a sample mean of 25 items is less than 10, given $\\mu=12$ and $\\sigma=5$?",
+    options: ["=NORM.DIST(10, 12, 5/SQRT(25), TRUE)", "=NORM.DIST(10, 12, 5, TRUE)", "=NORM.S.DIST(10, TRUE)", "=1-NORM.DIST(10, 12, 5/5, TRUE)"],
+    correctOptionIndex: 0,
+    explanation: "For sample means, use the Standard Error ($5/\\sqrt{25}$) as the third argument.",
+    difficulty: "hard"
+  },
+  {
+    topic: "Hypothesis Testing",
+    content: "A researcher conducts a Z-test for a population mean. The null hypothesis is $H_0: \\mu = 100$ and the alternative is $H_A: \\mu \\neq 100$. The computed Z-score is 2.00. Using the 2-rule for two-tails, what is the p-value calculation if the Z-table probability for 2.00 is 0.9772?",
+    options: ["2 * (1 - 0.9772)", "1 - 0.9772", "2 * 0.9772", "0.9772 / 2"],
+    correctOptionIndex: 0,
+    explanation: "For a two-tailed test with $z > 0$, the p-value is 2 times the area in the upper tail. Area in upper tail = $1 - 0.9772 = 0.0228$. Total p-value = $2 \\times 0.0228 = 0.0456$.",
+    difficulty: "hard"
+  },
+  {
+    topic: "Confidence Intervals",
+    content: "What is the correct $Z^*$ value for a 90% Confidence Interval?",
+    options: ["1.645", "1.960", "2.326", "2.576"],
+    correctOptionIndex: 0,
+    explanation: "A 90% Confidence Interval leaves 5% in each tail. The Z-score for a cumulative area of 0.95 is 1.645.",
+    difficulty: "easy"
+  },
+  {
+    topic: "Hypothesis Testing",
+    content: "When testing $H_A: \\mu < 50$, a researcher finds a Z-score of -2.10. If the Z-table gives 0.0179 for -2.10, what is the p-value?",
+    options: ["0.0179", "0.9821", "0.0358", "0.0500"],
+    correctOptionIndex: 0,
+    explanation: "For a lower-tail test, the p-value is the area to the left of the Z-score, which is exactly what the Z-table (cumulative) provides.",
+    difficulty: "medium"
+  },
+  {
+    topic: "Confidence Intervals",
+    content: "A sample of 100 items has a mean of 80 and a population standard deviation of 15. What is the Standard Error?",
+    options: ["1.5", "15", "0.15", "1.2"],
+    correctOptionIndex: 0,
+    explanation: "$SE = \\sigma / \\sqrt{n} = 15 / \\sqrt{100} = 15 / 10 = 1.5$.",
     difficulty: "medium"
   }
 ];

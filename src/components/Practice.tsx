@@ -50,9 +50,42 @@ export default function Practice({ userId, assignmentData, onCompleteAssignment 
       const assigned = assignmentData.questionIndices.map(idx => STATIC_QUESTIONS[idx]);
       setSessionQuestions(assigned);
     } else {
-      // Pick 20 unique random questions
-      const shuffled = [...STATIC_QUESTIONS].sort(() => 0.5 - Math.random());
-      setSessionQuestions(shuffled.slice(0, 20));
+      // Pick 20 questions balanced across 5 categories
+      const categories = {
+        sampling: STATIC_QUESTIONS.filter(q => q.topic === "Sampling Methods"),
+        hypothesis: STATIC_QUESTIONS.filter(q => q.topic === "Hypothesis Testing"),
+        ci: STATIC_QUESTIONS.filter(q => q.topic === "Confidence Intervals"),
+        probability: STATIC_QUESTIONS.filter(q => 
+          ["Probability", "Bayes' Theorem", "Central Limit Theorem"].includes(q.topic)
+        ),
+        excel: STATIC_QUESTIONS.filter(q => 
+          q.topic === "Excel" || 
+          (q.topic === "Normal Distribution" && q.options.some(opt => opt.includes("NORM.")))
+        )
+      };
+
+      const selectFromCategory = (list: Question[], count: number) => {
+        return [...list].sort(() => 0.5 - Math.random()).slice(0, count);
+      };
+
+      // Try to take 4 from each category to make 20
+      const session = [
+        ...selectFromCategory(categories.sampling, 4),
+        ...selectFromCategory(categories.hypothesis, 4),
+        ...selectFromCategory(categories.ci, 4),
+        ...selectFromCategory(categories.probability, 4),
+        ...selectFromCategory(categories.excel, 4)
+      ];
+
+      // If for some reason we have fewer than 20 (pool is small), fill with randoms
+      if (session.length < 20) {
+        const existingIds = new Set(session.map(q => q.content));
+        const remaining = STATIC_QUESTIONS.filter(q => !existingIds.has(q.content));
+        const filler = remaining.sort(() => 0.5 - Math.random()).slice(0, 20 - session.length);
+        session.push(...filler);
+      }
+
+      setSessionQuestions(session.sort(() => 0.5 - Math.random()));
     }
     setStartTime(Date.now());
     setLoading(false);

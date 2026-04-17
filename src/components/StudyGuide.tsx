@@ -49,10 +49,10 @@ export default function StudyGuide() {
           name: "Simple Random Sampling",
           def: "Every individual in the population has an exactly equal chance of being selected (like a lottery).",
           tag: "The Pure Random",
-          image: "https://images.unsplash.com/photo-1543286386-713bdd548da4?q=80&w=400&h=300&auto=format&fit=crop",
+          image: DEFAULT_IMAGE,
           details: {
             title: "SRS Mechanics",
-            math: "Probability of selection: $P = n / N$. \\nRequires a complete list (sampling frame) of the population.",
+            math: "Probability of selection: $P = n / N$.\nRequires a complete list (sampling frame) of the population.",
             example: "**Business Application:** An internal auditor generates random numbers to select 50 out of 5,000 invoices to check for payment accuracy and compliance.",
             proTip: "The gold standard for reducing bias, but often logistically difficult for massive populations."
           }
@@ -62,10 +62,10 @@ export default function StudyGuide() {
           name: "Stratified Sampling",
           def: "Divide the population into groups (strata) by characteristics, then sample from each group.",
           tag: "The Balanced Set",
-          image: "https://images.unsplash.com/photo-1543286386-713bdd548da4?q=80&w=400&h=300&auto=format&fit=crop",
+          image: DEFAULT_IMAGE,
           details: {
             title: "Stratified Logic",
-            math: "$n_i = (N_i / N) \\times n_{total}$ \\nEnsures proportional representation of sub-groups.",
+            math: "$n_i = (N_i / N) \\times n_{total}$\nEnsures proportional representation of sub-groups.",
             example: "**Business Application:** A smartphone maker surveys customer satisfaction by 'Income Tier' to ensure premium users' feedback isn't drowned out by the larger budget-tier group.",
             proTip: "Reduces sampling error by ensuring no critical minority group is left out."
           }
@@ -75,10 +75,10 @@ export default function StudyGuide() {
           name: "Cluster Sampling",
           def: "Divide population into groups (clusters), randomly pick clusters, and survey everyone in them.",
           tag: "The Group Raid",
-          image: "https://images.unsplash.com/photo-1543286386-713bdd548da4?q=80&w=400&h=300&auto=format&fit=crop",
+          image: DEFAULT_IMAGE,
           details: {
             title: "Cluster Mechanics",
-            math: "Step 1: Divide pop into $N$ clusters. \\nStep 2: SRS to pick $n$ clusters. \\nStep 3: Census (survey all) in picked clusters.",
+            math: "Step 1: Divide pop into $N$ clusters.\nStep 2: SRS to pick $n$ clusters.\nStep 3: Census (survey all) in picked clusters.",
             example: "**Business Application:** A retail chain tests a new store layout by randomly selecting 5 specific cities and implementing the change in every store within those 5 cities.",
             proTip: "Highly cost-effective for geographically dispersed populations, but adds 'cluster bias'."
           }
@@ -88,10 +88,10 @@ export default function StudyGuide() {
           name: "Systematic Sampling",
           def: "Selecting members at a regular interval (every kth person) from a ordered list.",
           tag: "The Pattern",
-          image: "https://images.unsplash.com/photo-1596495573175-959b999712ee?q=80&w=400&h=300&auto=format&fit=crop",
+          image: DEFAULT_IMAGE,
           details: {
             title: "Calculating Interval k",
-            math: "$k = N / n$. \\nStart at a random point between 1 and $k$, then pick every $k$th person.",
+            math: "$k = N / n$.\nStart at a random point between 1 and $k$, then pick every $k$th person.",
             example: "**Business Application:** A data center quality check involves inspecting the throughput of every 100th server rack as it comes off the assembly line.",
             proTip: "Very easy to execute on assembly lines, but dangerous if the population has a hidden cycle that matches $k$."
           }
@@ -101,7 +101,7 @@ export default function StudyGuide() {
           name: "Convenience Sampling",
           def: "Selecting individuals who are easiest to reach or most available.",
           tag: "The Path of Ease",
-          image: "https://images.unsplash.com/photo-1509228468518-180dd482180c?q=80&w=400&h=300&auto=format&fit=crop",
+          image: DEFAULT_IMAGE,
           details: {
             title: "Non-Probability Setup",
             math: "No complex probability math — just selection based on accessibility.",
@@ -122,7 +122,7 @@ export default function StudyGuide() {
           name: "Excel Syntax CheatSheet",
           def: "The essential formulas for calculating probabilities using the Normal Distribution in Excel.",
           tag: "Exam Secret",
-          image: "https://images.unsplash.com/photo-1543286386-713bdd548da4?q=80&w=400&h=300&auto=format&fit=crop",
+          image: DEFAULT_IMAGE,
           details: {
             title: "Normal Dist Excel Table",
             math: "| Question Description | Excel Syntax |\n| :--- | :--- |\n| Individual ($x$) & Less Than | `=NORM.DIST(x, mean, sd, TRUE)` |\n| Individual ($x$) & More Than | `=1-NORM.DIST(x, mean, sd, TRUE)` |\n| Individual & Between $x1, x2$ | `=NORM.DIST(x2, ...)-NORM.DIST(x1, ...)` |\n| Sample (avg) & Less Than | `=NORM.DIST(x, mean, sd/SQRT(n), TRUE)` |\n| Sample (avg) & More Than | `=1-NORM.DIST(x, mean, sd/SQRT(n), TRUE)` |\n| Sample & Between $x1, x2$ | `=NORM.DIST(x2, mean, sd/SQRT(n), TRUE)-NORM.DIST(x1, mean, sd/SQRT(n), TRUE)` |",
@@ -135,7 +135,7 @@ export default function StudyGuide() {
           name: "Z-score Logic",
           def: "Standardizing data values into standard deviations from the mean.",
           tag: "The Level Scale",
-          image: "https://images.unsplash.com/photo-1634084462412-b54873c0a56d?q=80&w=400&h=300&auto=format&fit=crop",
+          image: DEFAULT_IMAGE,
           details: {
             title: "Standardization",
             math: "$Z = \\frac{X - \\mu}{\\sigma}$",
@@ -152,16 +152,16 @@ export default function StudyGuide() {
       bg: "bg-purple-50",
       items: [
         {
-          id: "revised",
-          name: "Revised Probability",
-          def: "Updating prior probabilities as soon as new evidence or data becomes available.",
-          tag: "The Update",
-          image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=400&h=300&auto=format&fit=crop",
+          id: "bayes",
+          name: "Bayes' Theorem",
+          def: "A mathematical formula used to determine the conditional probability of an event based on prior knowledge of conditions that might be related to the event.",
+          tag: "The Probability Update",
+          image: DEFAULT_IMAGE,
           details: {
-            title: "Inverse Probability",
-            math: "$P(A|B) = \\frac{P(B|A) \times P(A)}{P(B|A)P(A) + P(B|A^c)P(A^c)}$",
-            example: "**Business Application:** An insurance firm uses Bayes' to update the risk profile of a driver after they join a safe-driving telematics program.",
-            proTip: "Always identify your 'Prior Probability' (what you thought before) and 'Likelihood' (the new data effect)."
+            title: "Conditional Probability Formula (Bayes' Theorem)",
+            math: "$P(A|B) = \\frac{P(B|A) P(A)}{P(B|A) P(A) + P(B|A^c) P(A^c)}$\n\nWhere:\n- **$P(A|B)$**: Posterior Probability (Probability of A knowing B occurred)\n- **$P(A)$**: Prior Probability (Initial probability of A)\n- **$P(B|A)$**: Likelihood (Probability of seeing B if A is true)\n- **$P(A^c)$**: Probability that A does not occur (Complement)",
+            example: "**Business Application:** An insurance firm uses Bayes' to calculate the probability a driver is 'High Risk' $(A)$ given they had an accident $(B)$, using historical data of accident rates among high-risk vs low-risk groups.",
+            proTip: "The denominator is simply the 'Total Probability' of event B occurring across all possible states."
           }
         }
       ]
@@ -174,15 +174,15 @@ export default function StudyGuide() {
       items: [
         {
           id: "ci",
-          name: "Confidence Intervals (Z-Method)",
-          def: "A range of values used to estimate the true population parameter with a specific level of certainty when σ is known.",
+          name: "Confidence Intervals (Z vs T)",
+          def: "A range of values used to estimate the true population parameter with a specific level of certainty.",
           tag: "The Range Builder",
-          image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=400&h=300&auto=format&fit=crop",
+          image: DEFAULT_IMAGE,
           details: {
-            title: "Z-Interval Calculator",
-            math: "| Component | POP. $\\sigma$ Known (Z) |\n| :--- | :--- |\n| **Point Estimate** | Sample mean $\\bar{x}$ |\n| **Critical Value** | $Z^*$ values below |\n| **Standard Error** | $\\sigma / \\sqrt{n}$ |\n| **Margin of Error** | $Z^* \\times (\\sigma / \\sqrt{n})$ |\n| **Final Formula** | $\\bar{x} \\pm Z^* \\frac{\\sigma}{\\sqrt{n}}$ |\n\n**Common $Z^*$ Values:**  \n- 90% Confidence: **1.645**\n- 92% Confidence: **1.751**\n- 95% Confidence: **1.960**\n- 98% Confidence: **2.326**\n- 99% Confidence: **2.576**",
-            example: "**Business Application:** A quality control manager uses a Z-interval to estimate the average weight of cereal boxes when the machine's precision ($\\sigma$) is known from historical data.",
-            proTip: "Confidence increases as the interval gets wider. A 99% CI is wider than a 95% CI."
+            title: "CI Decision Matrix",
+            math: "| Component | Pop. $\\sigma$ Known (Z) | Pop. $\\sigma$ Unknown (T) |\n| :--- | :--- | :--- |\n| **Point Estimate** | Sample mean $\\bar{x}$ | Sample mean $\\bar{x}$ |\n| **Critical Value** | $Z^*$ values below | $t^*$ (Degrees of Freedom: $n-1$) |\n| **Standard Error** | $\\sigma / \\sqrt{n}$ | $s / \\sqrt{n}$ ($s$ is sample SD) |\n| **Margin of Error** | $Z^* \\times (\\sigma / \\sqrt{n})$ | $t^* \\times (s / \\sqrt{n})$ |\n| **Final Formula** | $\\bar{x} \\pm Z^* \\frac{\\sigma}{\\sqrt{n}}$ | $\\bar{x} \\pm t^* \\frac{s}{\\sqrt{n}}$ |\n\n**Common $Z^*$ Values:**  \n- 90% Confidence: **1.645**\n- 92% Confidence: **1.751**\n- 95% Confidence: **1.960**\n- 98% Confidence: **2.326**\n- 99% Confidence: **2.576**\n\n**Excel Syntax for T-Interval:**\n- Get $t^*$: `=T.INV.2T(alpha, df)` where $\\alpha = 1 - \\text{Confidence Level}$.",
+            example: "**Business Application:** A quality control manager uses a Z-interval if machine precision ($\\sigma$) is known. If only the current sample SD ($s$) is available, they use the T-interval.",
+            proTip: "Use the T-distribution whenever you have to estimate $\\sigma$ using the sample standard deviation $s$. Remember $df = n - 1$."
           }
         },
         {
@@ -190,7 +190,7 @@ export default function StudyGuide() {
           name: "Hypothesis Testing (Z-Test)",
           def: "A 4-step procedure to decide whether there is enough evidence to reject a status quo claim when σ is known.",
           tag: "The Verdict",
-          image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=400&h=300&auto=format&fit=crop",
+          image: DEFAULT_IMAGE,
           details: {
             title: "Z-Test Strategic Protocol",
             math: "### 1. The 4-Step Process\n1. **Hypothesize:** Specify $H_0$ (contains equality) and $H_A$ (the alternative).\n2. **Significance:** Specify $\\alpha$ (standard level of risk, e.g., 0.05).\n3. **Calculate:** Find test statistic $z = \\frac{\\bar{x} - \\mu_0}{\\sigma / \\sqrt{n}}$ and the p-value.\n4. **Conclusion:** State verdict using the p-value rule.\n\n### 2. Probability Decision Matrix\n| Alternative ($H_A$) | Z-Table (Find P) | Excel Syntax (p-value) |\n| :--- | :--- | :--- |\n| **Lower ($H_A: \\mu < \\mu_0$)** | Prob. from table | `=NORM.DIST(z,0,1,TRUE)` |\n| **Upper ($H_A: \\mu > \\mu_0$)** | $1 - \\text{Prob.}$ | `=1-NORM.DIST(z,0,1,TRUE)` |\n| **Two-Tail ($H_A: \\mu \\neq \\mu_0$)** | *See Rule Below* | *See Rule Below* |\n\n**Two-Tail Rule:**\n- **If $z > 0$:** $2 \\times (1 - \\text{Prob.})$ OR `=2*(1-NORM.DIST(z,0,1,TRUE))`\n- **If $z < 0$:** $2 \\times \\text{Prob.}$ OR `=2*NORM.DIST(z,0,1,TRUE)`\n\n### 3. Final Conclusion Logic\n- **If p-value $\\le \\alpha$:** Then we **reject $H_0$**, **fail to reject $H_A$**, we **can support** the conclusion.\n- **If p-value $> \\alpha$:** Then we say that we **fail to reject $H_0$**, **reject $H_A$**, we **cannot support** the conclusion.",
