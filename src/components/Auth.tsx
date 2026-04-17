@@ -107,11 +107,14 @@ export default function Auth({ onLogin }: AuthProps) {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 p-4">
-      <Card className="w-full max-w-md high-density-card">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-black text-[#1e293b]">StatsMaster</CardTitle>
-          <CardDescription>
+    <div className="flex items-center justify-center min-h-screen bg-slate-50 p-3 md:p-6">
+      <Card className="w-full max-w-[360px] md:max-w-md high-density-card">
+        <CardHeader className="text-center p-4 md:p-6">
+          <div className="mx-auto bg-blue-600 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-2 md:mb-4 shadow-lg shadow-blue-200">
+            <GraduationCap className="text-white w-6 h-6 md:w-7 md:h-7" />
+          </div>
+          <CardTitle className="text-xl md:text-2xl font-black text-[#1e293b]">StatsMaster</CardTitle>
+          <CardDescription className="text-xs md:text-sm">
             {foundUser 
               ? "Verify your identity" 
               : isNewUser 
@@ -119,7 +122,7 @@ export default function Auth({ onLogin }: AuthProps) {
                 : "Enter your name to start practicing"}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
           {!foundUser && !isNewUser && (
             <form onSubmit={handleInitialCheck} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">

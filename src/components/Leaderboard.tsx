@@ -48,7 +48,7 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
         return xpB - xpA;
       });
 
-      setLeaders(sorted.slice(0, isMini ? 5 : 10));
+      setLeaders(sorted.slice(0, 10));
       setLoading(false);
     });
 

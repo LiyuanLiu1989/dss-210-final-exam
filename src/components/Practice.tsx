@@ -235,31 +235,31 @@ export default function Practice({ userId, assignmentData, onCompleteAssignment 
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center px-4">
+      <div className="flex flex-col md:flex-row justify-between items-center px-4 gap-2 md:gap-0">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Question</span>
-          <span className="bg-blue-600 text-white text-xs font-black px-3 py-1 rounded-full">{currentIndex + 1} / 20</span>
+          <span className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest">Question</span>
+          <span className="bg-blue-600 text-white text-[10px] md:text-xs font-black px-3 py-1 rounded-full">{currentIndex + 1} / 20</span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="text-xs font-black text-green-600 uppercase tracking-widest">Score: {sessionScore}</div>
+          <div className="text-[10px] md:text-xs font-black text-green-600 uppercase tracking-widest">Score: {sessionScore}</div>
         </div>
       </div>
 
-      <div className="high-density-card">
-        <div className="section-title flex justify-between items-center">
+      <div className="high-density-card p-4 md:p-6">
+        <div className="section-title flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div className="flex items-center gap-2">
-            <span>{currentQuestion.topic}</span>
-            <Badge variant={currentQuestion.difficulty === "easy" ? "secondary" : currentQuestion.difficulty === "medium" ? "default" : "destructive"} className="text-[10px] uppercase font-bold">
+            <span className="truncate max-w-[150px] sm:max-w-none">{currentQuestion.topic}</span>
+            <Badge variant={currentQuestion.difficulty === "easy" ? "secondary" : currentQuestion.difficulty === "medium" ? "default" : "destructive"} className="text-[8px] md:text-[10px] uppercase font-bold">
               {currentQuestion.difficulty}
             </Badge>
           </div>
-          <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+          <div className="flex items-center gap-1 text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">
             <Database className="w-3 h-3" />
             Pool: {STATIC_QUESTIONS.length}
           </div>
         </div>
         
-        <div className="text-lg leading-relaxed text-[#1e293b] mb-8 font-medium">
+        <div className="text-base md:text-lg leading-relaxed text-[#1e293b] mb-6 md:mb-8 font-medium">
           <ReactMarkdown 
             remarkPlugins={[remarkMath]} 
             rehypePlugins={[rehypeKatex]}
@@ -299,10 +299,10 @@ export default function Practice({ userId, assignmentData, onCompleteAssignment 
           ))}
         </div>
 
-        <div className="mt-8 flex gap-3">
+        <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">
           {!submitted ? (
             <Button 
-              className="flex-1 bg-blue-600 hover:bg-blue-700 font-bold py-6" 
+              className="flex-1 bg-blue-600 hover:bg-blue-700 font-bold py-5 md:py-6" 
               disabled={selectedOption === null}
               onClick={handleSubmit}
             >
@@ -312,13 +312,13 @@ export default function Practice({ userId, assignmentData, onCompleteAssignment 
             <>
               <Button 
                 variant="outline" 
-                className="flex-1 border-blue-600 text-blue-700 font-bold py-6"
+                className="flex-1 border-blue-600 text-blue-700 font-bold py-5 md:py-6"
                 onClick={() => setShowExplanation(!showExplanation)}
               >
                 {showExplanation ? "Hide Explanation" : "Show Explanation"}
               </Button>
               <Button 
-                className="flex-1 bg-blue-600 hover:bg-blue-700 font-bold py-6"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 font-bold py-5 md:py-6"
                 onClick={handleNext}
               >
                 {currentIndex < sessionQuestions.length - 1 ? "Next Question" : "Finish Session"}

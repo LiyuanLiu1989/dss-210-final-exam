@@ -53,6 +53,7 @@ export default function App() {
   const [activeBattleId, setActiveBattleId] = useState<string | null>(null);
   const [incomingInvite, setIncomingInvite] = useState<GameSession & { id: string } | null>(null);
   const [activeAssignment, setActiveAssignment] = useState<{ id: string, questionIndices: number[] } | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const storedId = localStorage.getItem("statsMaster_userId");
@@ -184,7 +185,23 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8fafc]">
+    <div className="flex h-screen overflow-hidden bg-[#f8fafc] flex-col md:flex-row">
+      {/* Mobile Header */}
+      <header className="md:hidden flex items-center justify-between p-4 bg-[#1e293b] text-white shrink-0">
+        <div className="flex items-center gap-2">
+          <GraduationCap className="w-5 h-5 text-blue-500" />
+          <span className="font-extrabold text-md tracking-tight">STATS.IO</span>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-white hover:bg-slate-700" 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <LayoutDashboard className="w-6 h-6" />}
+        </Button>
+      </header>
+
       {/* Invite Notification */}
       {incomingInvite && (
         <div className="absolute top-4 right-4 z-50 animate-in slide-in-from-right duration-500">
@@ -208,45 +225,58 @@ export default function App() {
         </div>
       )}
 
-      {/* Sidebar */}
-      <aside className="w-[220px] bg-[#1e293b] text-white p-6 flex flex-col shrink-0">
-        <div className="flex items-center gap-2 mb-10">
-          <GraduationCap className="w-6 h-6 text-blue-500" />
-          <span className="font-extrabold text-lg tracking-tight">STATS.IO</span>
+      {/* Sidebar - Desktop */}
+      <aside className={`
+        fixed inset-0 z-40 bg-[#1e293b] text-white p-6 flex flex-col shrink-0 transition-transform duration-300 md:relative md:translate-x-0 md:w-[220px] md:z-auto
+        ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+      `}>
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center gap-2">
+            <GraduationCap className="w-6 h-6 text-blue-500" />
+            <span className="font-extrabold text-lg tracking-tight">STATS.IO</span>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="md:hidden text-white" 
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X className="w-6 h-6" />
+          </Button>
         </div>
 
         <nav className="flex-1 space-y-1">
           <div 
             className={`sidebar-nav-item flex items-center gap-3 ${currentView === "dashboard" ? "active" : ""}`}
-            onClick={() => setCurrentView("dashboard")}
+            onClick={() => { setCurrentView("dashboard"); setIsMobileMenuOpen(false); }}
           >
             <LayoutDashboard className="w-4 h-4" />
             My Dashboard
           </div>
           <div 
             className={`sidebar-nav-item flex items-center gap-3 ${currentView === "study" ? "active" : ""}`}
-            onClick={() => setCurrentView("study")}
+            onClick={() => { setCurrentView("study"); setIsMobileMenuOpen(false); }}
           >
             <FileText className="w-4 h-4" />
             Study Guide
           </div>
           <div 
             className={`sidebar-nav-item flex items-center gap-3 ${currentView === "practice" ? "active" : ""}`}
-            onClick={() => setCurrentView("practice")}
+            onClick={() => { setCurrentView("practice"); setIsMobileMenuOpen(false); }}
           >
             <BookOpen className="w-4 h-4" />
             Practice Arena
           </div>
           <div 
             className={`sidebar-nav-item flex items-center gap-3 ${currentView === "social" ? "active" : ""}`}
-            onClick={() => setCurrentView("social")}
+            onClick={() => { setCurrentView("social"); setIsMobileMenuOpen(false); }}
           >
             <Users className="w-4 h-4" />
             Social Hub
           </div>
           <div 
             className={`sidebar-nav-item flex items-center gap-3 ${currentView === "leaderboard" ? "active" : ""}`}
-            onClick={() => setCurrentView("leaderboard")}
+            onClick={() => { setCurrentView("leaderboard"); setIsMobileMenuOpen(false); }}
           >
             <Trophy className="w-4 h-4" />
             Leaderboard
@@ -260,7 +290,7 @@ export default function App() {
           </div>
           <div 
             className="sidebar-nav-item flex items-center gap-3 text-red-400 hover:text-red-300"
-            onClick={handleLogout}
+            onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
           >
             <LogOut className="w-4 h-4" />
             Sign Out
@@ -269,7 +299,7 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto p-5 relative">
+      <main className="flex-1 overflow-auto p-3 md:p-5 relative">
         <div className="max-w-[1200px] mx-auto">
           {activeBattleId ? (
             <div className="max-w-2xl mx-auto">

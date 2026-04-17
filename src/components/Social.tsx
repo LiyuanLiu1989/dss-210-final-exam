@@ -200,25 +200,25 @@ export default function Social({ userId, userName, onChallenge, onStartAssignmen
         </div>
 
         <Tabs defaultValue="friends" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
-            <TabsTrigger value="friends" className="text-xs font-bold">Friends</TabsTrigger>
-            <TabsTrigger value="requests" className="text-xs font-bold relative">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 h-auto mb-6 bg-slate-100/50 p-1">
+            <TabsTrigger value="friends" className="text-[10px] md:text-xs font-bold py-2">Friends</TabsTrigger>
+            <TabsTrigger value="requests" className="text-[10px] md:text-xs font-bold py-2 relative">
               Requests
               {pendingRequests.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white animate-pulse">
+                <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
                   {pendingRequests.length}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="assignments" className="text-xs font-bold relative">
+            <TabsTrigger value="assignments" className="text-[10px] md:text-xs font-bold py-2 relative">
               Homework
               {assignments.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white">
+                <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white">
                   {assignments.length}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="search" className="text-xs font-bold">Find</TabsTrigger>
+            <TabsTrigger value="search" className="text-[10px] md:text-xs font-bold py-2">Find</TabsTrigger>
           </TabsList>
 
           <TabsContent value="friends">
