@@ -14,6 +14,7 @@ import {
 } from "./ui/select";
 import { toast } from "sonner";
 import { UserProfile } from "../types";
+import { GraduationCap } from "lucide-react";
 
 interface AuthProps {
   onLogin: (userId: string) => void;
