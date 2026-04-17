@@ -8,8 +8,6 @@ export interface UserProfile {
   accuracy: number;
   timeSpent: number; // minutes
   lastActive: string;
-  pin?: string;
-  pinHint?: string;
 }
 
 export interface Question {
