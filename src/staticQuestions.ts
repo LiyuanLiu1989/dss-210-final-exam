@@ -606,11 +606,67 @@ export const STATIC_QUESTIONS: Question[] = [
     difficulty: "medium"
   },
   {
-    topic: "Confidence Intervals",
-    content: "A sample of 100 items has a mean of 80 and a population standard deviation of 15. What is the Standard Error?",
-    options: ["1.5", "15", "0.15", "1.2"],
+    topic: "Excel",
+    content: "Which Excel formula should be used to find the cumulative probability to the left of $x=85$ in a normal distribution with $\\mu=75$ and $\\sigma=10$?",
+    options: ["=NORM.DIST(85, 75, 10, TRUE)", "=NORM.DIST(85, 75, 10, FALSE)", "=NORM.S.DIST(1, TRUE)", "=NORM.INV(0.85, 75, 10)"],
     correctOptionIndex: 0,
-    explanation: "$SE = \\sigma / \\sqrt{n} = 15 / \\sqrt{100} = 15 / 10 = 1.5$.",
+    explanation: "The `NORM.DIST` function calculates the probability for a specific value in a normal distribution. \n- **Arguments**: `(x, mean, standard_dev, cumulative)`.\n- **Cumulative**: Set to `TRUE` for the area to the left (cumulative probability), or `FALSE` for the probability density function (height).",
     difficulty: "medium"
-  }
+  },
+  {
+    topic: "Excel",
+    content: "You are performing a two-tailed hypothesis test with a calculated Z-score of 2.15. Which Excel formula correctly calculates the p-value?",
+    options: ["=2*(1-NORM.S.DIST(2.15, TRUE))", "=1-NORM.S.DIST(2.15, TRUE)", "=NORM.S.DIST(2.15, TRUE)", "=2*NORM.S.DIST(-2.15, TRUE)"],
+    correctOptionIndex: 0,
+    explanation: "For a two-tailed test using a Z-score:\n1. Find the area of the upper tail: `1 - NORM.S.DIST(z, TRUE)`.\n2. Multiply by 2: `2 * (area)`. \nAlternatively, `=2*NORM.S.DIST(-ABS(z), TRUE)` also works as it finds the lower tail and doubles it.",
+    difficulty: "hard"
+  },
+  {
+    topic: "Excel",
+    content: "To find the $t^*$ critical value for a 95% Confidence Interval with $n=20$ (degrees of freedom = 19), which Excel formula is appropriate?",
+    options: ["=T.INV.2T(0.05, 19)", "=T.INV(0.95, 19)", "=T.DIST.2T(0.05, 19)", "=T.INV.2T(0.95, 19)"],
+    correctOptionIndex: 0,
+    explanation: "The `T.INV.2T` function is designed for two-tailed inverse calculations, perfect for Confidence Intervals.\n- **Probability**: Enter the 'alpha' (total area in both tails). For 95% confidence, alpha = 0.05.\n- **Deg_freedom**: $n - 1 = 19$.",
+    difficulty: "hard"
+  },
+  {
+    topic: "Excel",
+    content: "Which formula calculates the Margin of Error for a Z-distribution confidence interval given $\\alpha=0.05, \\sigma=12,$ and $n=36$?",
+    options: ["=CONFIDENCE.NORM(0.05, 12, 36)", "=CONFIDENCE.T(0.05, 12, 36)", "=NORM.S.INV(0.95)*12/SQRT(36)", "=1.96*12/36"],
+    correctOptionIndex: 0,
+    explanation: "The `CONFIDENCE.NORM(alpha, standard_dev, size)` function in Excel directly calculates the Margin of Error ($Z^* \\times \\sigma/\\sqrt{n}$) for a normal distribution.",
+    difficulty: "medium"
+  },
+  {
+    topic: "Excel",
+    content: "In Excel, what does the formula `=NORM.S.DIST(1.5, TRUE)` represent?",
+    options: ["The area to the left of Z=1.5", "The area to the right of Z=1.5", "The Z-score for a 1.5% probability", "The mean of the distribution"],
+    correctOptionIndex: 0,
+    explanation: "`NORM.S.DIST` (Standard Normal Distribution) calculates the cumulative probability (area to the left) for a given Z-score. Setting the second argument to `TRUE` ensures it is cumulative.",
+    difficulty: "easy"
+  },
+  {
+    topic: "Excel",
+    content: "If you need to find the probability that a value falls BETWEEN 10 and 20 in a normal distribution (mean=15, sd=5), which Excel approach is correct?",
+    options: ["=NORM.DIST(20,15,5,TRUE) - NORM.DIST(10,15,5,TRUE)", "=NORM.DIST(20,15,5,TRUE)", "=NORM.DIST(10,20,5,TRUE)", "=NORM.S.DIST(20,TRUE) - NORM.S.DIST(10,TRUE)"],
+    correctOptionIndex: 0,
+    explanation: "To find the area between two points ($a$ and $b$), subtract the cumulative area of the smaller value from the cumulative area of the larger value: $P(a < X < b) = P(X < b) - P(X < a)$.",
+    difficulty: "medium"
+  },
+  {
+    topic: "Excel",
+    content: "Which function would you use to find the probability to the RIGHT of $t=2.093$ with $df=19$?",
+    options: ["=T.DIST.RT(2.093, 19)", "=T.DIST(2.093, 19, TRUE)", "=1-T.INV(0.95, 19)", "=T.DIST.2T(2.093, 19)"],
+    correctOptionIndex: 0,
+    explanation: "`T.DIST.RT` (Right Tail) returns the area to the right of the given t-value. It is equivalent to `1 - T.DIST(x, df, TRUE)`.",
+    difficulty: "medium"
+  },
+  {
+    topic: "Confidence Intervals",
+    content: "A researcher takes a small sample of $n=16$ items. The sample mean is 50, and the sample standard deviation ($s$) is 8. Using a $t^*$ value of 2.131 (for $df=15$), what is the 95% Confidence Interval?",
+    options: ["(45.738, 54.262)", "(46.000, 54.000)", "(48.935, 51.065)", "(44.524, 55.476)"],
+    correctOptionIndex: 0,
+    explanation: "Since the population standard deviation ($\\sigma$) is unknown and the sample size is small, we use the T-distribution method:\n1. **Standard Error ($SE$)**: $s / \\sqrt{n} = 8 / \\sqrt{16} = 8/4 = 2.0$.\n2. **Margin of Error ($ME$)**: $t^* \\times SE = 2.131 \\times 2.0 = 4.262$.\n3. **Interval**: $\\bar{x} \\pm ME = 50 \\pm 4.262 = (45.738, 54.262)$.",
+    difficulty: "hard"
+  },
 ];

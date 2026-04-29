@@ -284,10 +284,6 @@ export default function App() {
         </nav>
 
         <div className="mt-auto space-y-1">
-          <div className="sidebar-nav-item flex items-center gap-3">
-            <Settings className="w-4 h-4" />
-            Settings
-          </div>
           <div 
             className="sidebar-nav-item flex items-center gap-3 text-red-400 hover:text-red-300"
             onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
