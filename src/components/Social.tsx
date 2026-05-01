@@ -5,6 +5,7 @@ import {
   query, 
   where, 
   getDocs, 
+  getDoc,
   addDoc, 
   onSnapshot, 
   doc, 
@@ -74,22 +75,21 @@ export default function Social({ userId, userName, onChallenge, onStartAssignmen
       setSentRequests(outgoingPending);
 
       // Fetch user profiles for accepted friends and incoming requests
-      // Note: In real app, we'd handle more efficiently, but for this demo:
       const acceptedProfiles = await Promise.all(
         acceptedFriendUids.map(async (uid) => {
-          const d = await getDocs(query(collection(db, "users"), where("uid", "==", uid)));
-          if (d.empty) return null;
+          const d = await getDoc(doc(db, "users", uid));
+          if (!d.exists()) return null;
           const friendship = friendships.find(f => f.uids.includes(uid) && f.status === "accepted");
-          return { uid, ...d.docs[0].data(), friendshipId: friendship?.id } as UserProfile & { friendshipId: string };
+          return { uid, ...d.data(), friendshipId: friendship?.id } as UserProfile & { friendshipId: string };
         })
       );
       setFriends(acceptedProfiles.filter(p => p !== null) as any);
 
       const pendingProfiles = await Promise.all(
         incomingPending.map(async (p) => {
-          const d = await getDocs(query(collection(db, "users"), where("uid", "==", p.uid)));
-          if (d.empty) return null;
-          return { uid: p.uid, ...d.docs[0].data(), friendshipId: p.friendshipId } as UserProfile & { friendshipId: string };
+          const d = await getDoc(doc(db, "users", p.uid));
+          if (!d.exists()) return null;
+          return { uid: p.uid, ...d.data(), friendshipId: p.friendshipId } as UserProfile & { friendshipId: string };
         })
       );
       setPendingRequests(pendingProfiles.filter(p => p !== null) as any);

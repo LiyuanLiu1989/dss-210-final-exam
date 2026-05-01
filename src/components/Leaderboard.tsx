@@ -38,7 +38,7 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const entries: LeaderboardEntry[] = [];
       snapshot.forEach((doc) => {
-        entries.push(doc.data() as LeaderboardEntry);
+        entries.push({ uid: doc.id, ...doc.data() } as LeaderboardEntry);
       });
       
       // XP = (Correct Solved * 5) + (Accuracy * 2) + (Time spent * 0.5) + Social Points

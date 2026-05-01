@@ -30,7 +30,13 @@ export default function Dashboard({ userId, onStartPractice, onViewLeaderboard, 
     return () => unsubscribe();
   }, [userId]);
 
-  if (!profile) return null;
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center h-[200px] bg-white rounded-xl border border-slate-100 animate-pulse">
+        <p className="text-slate-400 font-medium">Fetching your stats...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

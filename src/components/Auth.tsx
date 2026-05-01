@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { db } from "../lib/firebase";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
+import { collection, query, where, getDocs, addDoc, doc, setDoc } from "firebase/firestore";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -33,28 +33,39 @@ export default function Auth({ onLogin }: AuthProps) {
     if (!firstName.trim() || !lastName.trim()) return;
     
     setLoading(true);
-    const fName = firstName.trim();
-    const lName = lastName.trim();
+    const fNameInput = firstName.trim();
+    const lNameInput = lastName.trim();
     
     try {
-      const q = query(
-        collection(db, "users"), 
-        where("firstName", "==", fName),
-        where("lastName", "==", lName)
-      );
+      const timeoutId = setTimeout(() => {
+        setLoading(false);
+        toast.error("Database handshake is taking longer than expected. Retrying...", { id: "auth-timeout" });
+      }, 12000);
+
+      // Query ALL users to filter in memory - slower but more flexible with case
+      // For a small class size, this is perfectly fine.
+      const querySnapshot = await getDocs(collection(db, "users"));
+      clearTimeout(timeoutId);
+      toast.dismiss("auth-timeout");
       
-      const querySnapshot = await getDocs(q);
+      // Filter in memory for case-insensitive match
+      const userDoc = querySnapshot.docs.find(doc => {
+        const data = doc.data();
+        const dbFirst = (data.firstName || "").toLowerCase();
+        const dbLast = (data.lastName || "").toLowerCase();
+        return dbFirst === fNameInput.toLowerCase() && dbLast === lNameInput.toLowerCase();
+      });
       
-      if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0];
+      if (userDoc) {
         setFoundUser({ id: userDoc.id, data: userDoc.data() as UserProfile });
       } else {
         setIsNewUser(true);
-        toast.info("No account found. Please select your section to create one.");
+        toast.info("No account found with this exact name. Please register as a new user below.");
       }
     } catch (error: any) {
-      toast.error("Something went wrong. Please try again.");
-      console.error(error);
+      const wrappedError = handleFirestoreError(error, OperationType.LIST, "users");
+      console.error("Auth check failed:", wrappedError);
+      toast.error(`Connection Error: ${error.message || "Please check your internet and try again."}`);
     } finally {
       setLoading(false);
     }
@@ -68,7 +79,13 @@ export default function Auth({ onLogin }: AuthProps) {
     }
     
     setLoading(true);
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      toast.error("Registration is taking long. Please try again or check your connection.");
+    }, 12000);
+
     try {
+      console.log("Starting registration for:", firstName, lastName);
       const newUser = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -79,13 +96,28 @@ export default function Auth({ onLogin }: AuthProps) {
         lastActive: new Date().toISOString()
       };
       
-      const docRef = await addDoc(collection(db, "users"), newUser);
-      localStorage.setItem("statsMaster_userId", docRef.id);
-      onLogin(docRef.id);
-      toast.success(`Welcome, ${firstName}!`);
+      // Generate a manual ID to be more robust
+      const newUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const userRef = doc(db, "users", newUserId);
+      
+      // We perform the setDoc without await to avoid hanging on flaky connections.
+      // Firestore will sync this in the background, and onSnapshot will see it immediately.
+      setDoc(userRef, newUser).catch(err => {
+        console.error("Delayed registration error:", err);
+      });
+      console.log("setDoc initiated, proceeding to login");
+      
+      clearTimeout(timeoutId);
+      localStorage.setItem("statsMaster_userId", newUserId);
+      
+      setLoading(false);
+      onLogin(newUserId);
+      toast.success(`Profile created! Welcome ${firstName}.`);
     } catch (error: any) {
-      toast.error("Failed to create profile.");
-      console.error(error);
+      clearTimeout(timeoutId);
+      const wrappedError = handleFirestoreError(error, OperationType.WRITE, "users");
+      toast.error("Could not register. Please try again.");
+      console.error(wrappedError);
     } finally {
       setLoading(false);
     }

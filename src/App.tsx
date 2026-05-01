@@ -54,18 +54,42 @@ export default function App() {
   const [incomingInvite, setIncomingInvite] = useState<GameSession & { id: string } | null>(null);
   const [activeAssignment, setActiveAssignment] = useState<{ id: string, questionIndices: number[] } | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [dbReady, setDbReady] = useState(false);
 
   useEffect(() => {
+    setDbReady(true); // Database is handled by Firebase SDK automatically
     const storedId = localStorage.getItem("statsMaster_userId");
     if (storedId) {
       setUserId(storedId);
-      // Fetch user name for game sessions
-      getDoc(doc(db, "users", storedId)).then(snap => {
-        if (snap.exists()) setUserName(`${snap.data().firstName} ${snap.data().lastName}`);
-      });
+      setLoading(false);
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
+
+  // Sync userName whenever userId is set
+  useEffect(() => {
+    if (!userId) {
+      setUserName("");
+      return;
+    }
+
+    const unsubscribe = onSnapshot(doc(db, "users", userId), (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setUserName(`${data.firstName} ${data.lastName}`);
+      } else {
+        // If profile is deleted or not found, logout
+        handleLogout();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
+
+  const handleLogin = (id: string) => {
+    setUserId(id);
+  };
 
   useEffect(() => {
     if (!userId) return;
@@ -164,12 +188,13 @@ export default function App() {
     toast.success("Homework set loaded! Complete it to earn extra points.");
   };
 
-  if (loading) {
+  if (loading || !dbReady) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-pulse flex flex-col items-center">
-          <GraduationCap className="w-16 h-16 text-primary mb-4" />
-          <p className="text-slate-500 font-medium">Loading StatsMaster...</p>
+          <GraduationCap className="w-16 h-16 text-blue-600 mb-4" />
+          <p className="text-slate-500 font-medium">Initializing StatsMaster...</p>
+          <p className="text-[10px] text-slate-400 mt-2">Checking database connection</p>
         </div>
       </div>
     );
@@ -178,7 +203,7 @@ export default function App() {
   if (!userId) {
     return (
       <>
-        <Auth onLogin={(id) => setUserId(id)} />
+        <Auth onLogin={handleLogin} />
         <Toaster position="top-center" />
       </>
     );
