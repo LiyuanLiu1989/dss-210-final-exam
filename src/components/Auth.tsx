@@ -39,21 +39,27 @@ export default function Auth({ onLogin }: AuthProps) {
     try {
       const timeoutId = setTimeout(() => {
         setLoading(false);
-        toast.error("Database handshake is taking longer than expected. Retrying...", { id: "auth-timeout" });
-      }, 12000);
+        toast.error("Searching is slower than usual. You can try to register as a new user if you don't have an account yet.", { 
+          id: "auth-timeout",
+          duration: 6000 
+        });
+      }, 10000);
 
-      // Query ALL users to filter in memory - slower but more flexible with case
-      // For a small class size, this is perfectly fine.
-      const querySnapshot = await getDocs(collection(db, "users"));
+      // Query by firstName first - targeted query is more reliable than listing all
+      const q = query(
+        collection(db, "users"), 
+        where("firstName", "==", fNameInput)
+      );
+      
+      const querySnapshot = await getDocs(q);
       clearTimeout(timeoutId);
       toast.dismiss("auth-timeout");
       
-      // Filter in memory for case-insensitive match
+      // Filter in memory for case-insensitive lastName match
       const userDoc = querySnapshot.docs.find(doc => {
         const data = doc.data();
-        const dbFirst = (data.firstName || "").toLowerCase();
         const dbLast = (data.lastName || "").toLowerCase();
-        return dbFirst === fNameInput.toLowerCase() && dbLast === lNameInput.toLowerCase();
+        return dbLast === lNameInput.toLowerCase();
       });
       
       if (userDoc) {
@@ -80,9 +86,9 @@ export default function Auth({ onLogin }: AuthProps) {
     
     setLoading(true);
     const timeoutId = setTimeout(() => {
-      setLoading(false);
-      toast.error("Registration is taking long. Please try again or check your connection.");
-    }, 12000);
+      // Don't disable loading here yet, just warn
+      toast.error("Connecting to server... We will proceed shortly if possible.", { id: "reg-waiting" });
+    }, 8000);
 
     try {
       console.log("Starting registration for:", firstName, lastName);
@@ -96,30 +102,32 @@ export default function Auth({ onLogin }: AuthProps) {
         lastActive: new Date().toISOString()
       };
       
-      // Generate a manual ID to be more robust
       const newUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const userRef = doc(db, "users", newUserId);
       
-      // We perform the setDoc without await to avoid hanging on flaky connections.
-      // Firestore will sync this in the background, and onSnapshot will see it immediately.
-      setDoc(userRef, newUser).catch(err => {
-        console.error("Delayed registration error:", err);
+      // OPTIMISTIC WRITE: Don't await the network confirmation
+      setDoc(userRef, newUser).catch(writeErr => {
+        console.warn("Background sync for registration pending:", writeErr);
       });
-      console.log("setDoc initiated, proceeding to login");
+      
+      console.log("Registration process moving forward optimistically for:", newUserId);
       
       clearTimeout(timeoutId);
+      toast.dismiss("reg-waiting");
+      
       localStorage.setItem("statsMaster_userId", newUserId);
       
-      setLoading(false);
+      // Move to next state immediately
       onLogin(newUserId);
-      toast.success(`Profile created! Welcome ${firstName}.`);
+      toast.success(`Welcome to StatsMaster, ${firstName}!`, { id: "reg-success" });
     } catch (error: any) {
       clearTimeout(timeoutId);
       const wrappedError = handleFirestoreError(error, OperationType.WRITE, "users");
       toast.error("Could not register. Please try again.");
       console.error(wrappedError);
-    } finally {
       setLoading(false);
+    } finally {
+      // We don't always want to set loading to false here because onLogin might unmount us
     }
   };
 
@@ -185,6 +193,24 @@ export default function Auth({ onLogin }: AuthProps) {
               <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 font-bold py-6" disabled={loading}>
                 {loading ? "Checking..." : "Continue"}
               </Button>
+              {loading && (
+                <p className="text-[10px] text-center text-slate-400 animate-pulse uppercase font-extrabold tracking-tighter">
+                  Handshaking with database...
+                </p>
+              )}
+              {!loading && firstName && lastName && (
+                <div className="pt-2 border-t border-slate-100">
+                  <p className="text-[10px] text-center text-slate-400 mb-2 uppercase font-bold">Stuck or new user?</p>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={() => setIsNewUser(true)} 
+                    className="w-full text-blue-600 text-[10px] font-black uppercase tracking-widest h-8"
+                  >
+                    Register New Account Instead
+                  </Button>
+                </div>
+              )}
             </form>
           )}
 

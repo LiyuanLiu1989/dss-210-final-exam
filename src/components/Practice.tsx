@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "../lib/firebase";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
 import { collection, addDoc, doc, updateDoc, getDoc } from "firebase/firestore";
 import { Question } from "../types";
 import { STATIC_QUESTIONS } from "../staticQuestions";
@@ -134,7 +134,8 @@ export default function Practice({ userId, assignmentData, onCompleteAssignment 
         toast.error("Incorrect answer.");
       }
     } catch (error) {
-      console.error("Error saving submission:", error);
+      handleFirestoreError(error, OperationType.WRITE, "submissions/users");
+      toast.error("Could not save progress. Please check connection.");
     }
   };
 

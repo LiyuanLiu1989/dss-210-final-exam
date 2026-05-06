@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "../lib/firebase";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
 import { 
   collection, 
   query, 
@@ -51,48 +51,63 @@ export default function Social({ userId, userName, onChallenge, onStartAssignmen
     );
 
     const unsubscribe = onSnapshot(q, async (snapshot) => {
-      const friendships = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Friendship));
-      
-      const acceptedFriendUids: string[] = [];
-      const incomingPending: { uid: string; friendshipId: string }[] = [];
-      const outgoingPending: string[] = [];
+      try {
+        const friendships = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Friendship));
+        
+        const acceptedFriendUids: string[] = [];
+        const incomingPending: { uid: string; friendshipId: string }[] = [];
+        const outgoingPending: string[] = [];
 
-      friendships.forEach(f => {
-        const otherUid = f.uids.find(uid => uid !== userId);
-        if (!otherUid) return;
+        friendships.forEach(f => {
+          const otherUid = f.uids.find(uid => uid !== userId);
+          if (!otherUid) return;
 
-        if (f.status === "accepted") {
-          acceptedFriendUids.push(otherUid);
-        } else if (f.status === "pending") {
-          if (f.senderId === userId) {
-            outgoingPending.push(otherUid);
-          } else {
-            incomingPending.push({ uid: otherUid, friendshipId: f.id! });
+          if (f.status === "accepted") {
+            acceptedFriendUids.push(otherUid);
+          } else if (f.status === "pending") {
+            if (f.senderId === userId) {
+              outgoingPending.push(otherUid);
+            } else {
+              incomingPending.push({ uid: otherUid, friendshipId: f.id! });
+            }
           }
-        }
-      });
+        });
 
-      setSentRequests(outgoingPending);
+        setSentRequests(outgoingPending);
 
-      // Fetch user profiles for accepted friends and incoming requests
-      const acceptedProfiles = await Promise.all(
-        acceptedFriendUids.map(async (uid) => {
-          const d = await getDoc(doc(db, "users", uid));
-          if (!d.exists()) return null;
-          const friendship = friendships.find(f => f.uids.includes(uid) && f.status === "accepted");
-          return { uid, ...d.data(), friendshipId: friendship?.id } as UserProfile & { friendshipId: string };
-        })
-      );
-      setFriends(acceptedProfiles.filter(p => p !== null) as any);
+        const acceptedProfiles = await Promise.all(
+          acceptedFriendUids.map(async (uid) => {
+            try {
+              const d = await getDoc(doc(db, "users", uid));
+              if (!d.exists()) return null;
+              const friendship = friendships.find(f => f.uids.includes(uid) && f.status === "accepted");
+              return { uid, ...d.data(), friendshipId: friendship?.id } as UserProfile & { friendshipId: string };
+            } catch (e) {
+              console.error("Error fetching friend profile:", uid, e);
+              return null;
+            }
+          })
+        );
+        setFriends(acceptedProfiles.filter(p => p !== null) as any);
 
-      const pendingProfiles = await Promise.all(
-        incomingPending.map(async (p) => {
-          const d = await getDoc(doc(db, "users", p.uid));
-          if (!d.exists()) return null;
-          return { uid: p.uid, ...d.data(), friendshipId: p.friendshipId } as UserProfile & { friendshipId: string };
-        })
-      );
-      setPendingRequests(pendingProfiles.filter(p => p !== null) as any);
+        const pendingProfiles = await Promise.all(
+          incomingPending.map(async (p) => {
+            try {
+              const d = await getDoc(doc(db, "users", p.uid));
+              if (!d.exists()) return null;
+              return { uid: p.uid, ...d.data(), friendshipId: p.friendshipId } as UserProfile & { friendshipId: string };
+            } catch (e) {
+              console.error("Error fetching pending profile:", p.uid, e);
+              return null;
+            }
+          })
+        );
+        setPendingRequests(pendingProfiles.filter(p => p !== null) as any);
+      } catch (err) {
+        handleFirestoreError(err, OperationType.LIST, "friendships");
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, "friendships");
     });
 
     // Listen for assignments received
@@ -103,6 +118,8 @@ export default function Social({ userId, userName, onChallenge, onStartAssignmen
     );
     const unsubAssignments = onSnapshot(aq, (snapshot) => {
       setAssignments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, "assignments");
     });
 
     return () => {

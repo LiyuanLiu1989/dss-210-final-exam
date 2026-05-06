@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "../lib/firebase";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
 import { 
   doc, 
   onSnapshot, 
@@ -45,6 +45,9 @@ export default function BattleArena({ userId, sessionId, onClose }: BattleArenaP
         toast.error("Battle session not found.");
         onClose();
       }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `game_sessions/${sessionId}`);
+      onClose();
     });
 
     return () => unsubscribe();

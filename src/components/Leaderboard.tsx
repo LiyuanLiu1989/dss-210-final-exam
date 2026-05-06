@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { db } from "../lib/firebase";
-import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
+import { collection, query, limit, onSnapshot, getDocs } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
-import { Trophy, Medal, Target, Zap } from "lucide-react";
+import { Trophy, Medal, Target, Zap, RefreshCw, AlertCircle } from "lucide-react";
+import { Button } from "./ui/button";
 
 interface LeaderboardEntry {
   uid: string;
@@ -26,13 +27,38 @@ interface LeaderboardProps {
 export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
   const [leaders, setLeaders] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchLeaders = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const q = query(collection(db, "users"), limit(100));
+      const snapshot = await getDocs(q);
+      const entries: LeaderboardEntry[] = [];
+      snapshot.forEach((doc) => {
+        entries.push({ uid: doc.id, ...doc.data() } as LeaderboardEntry);
+      });
+      
+      const sorted = [...entries].sort((a, b) => {
+        const xpA = (a.correctSolved || 0) * 10 + (a.accuracy || 0) * 5 + (a.timeSpent || 0) * 2 + (a.socialPoints || 0);
+        const xpB = (b.correctSolved || 0) * 10 + (b.accuracy || 0) * 5 + (b.timeSpent || 0) * 2 + (b.socialPoints || 0);
+        return xpB - xpA;
+      });
+
+      setLeaders(sorted.slice(0, 10));
+    } catch (err) {
+      console.error("Manual leaderboard fetch error:", err);
+      setError("Connection issue. Please try deep refresh.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // We'll fetch all users in the section (or top 50) and sort by combined XP
     const q = query(
       collection(db, "users"),
-      orderBy("correctSolved", "desc"),
-      limit(50)
+      limit(200)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -41,7 +67,6 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
         entries.push({ uid: doc.id, ...doc.data() } as LeaderboardEntry);
       });
       
-      // XP = (Correct Solved * 5) + (Accuracy * 2) + (Time spent * 0.5) + Social Points
       const sorted = [...entries].sort((a, b) => {
         const xpA = (a.correctSolved || 0) * 10 + (a.accuracy || 0) * 5 + (a.timeSpent || 0) * 2 + (a.socialPoints || 0);
         const xpB = (b.correctSolved || 0) * 10 + (b.accuracy || 0) * 5 + (b.timeSpent || 0) * 2 + (b.socialPoints || 0);
@@ -50,10 +75,15 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
 
       setLeaders(sorted.slice(0, 10));
       setLoading(false);
+      setError(null);
+    }, (err) => {
+      console.warn("Leaderboard live sync failed, using fallback mode.", err);
+      setError("Live sync limited. Use refresh button below.");
+      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [isMini]);
+  }, []);
 
   return (
     <div className={`space-y-6 ${fullWidth ? "w-full" : ""}`}>
@@ -64,6 +94,19 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
         </div>
         
         <div className="space-y-1">
+          {loading && leaders.length === 0 && (
+            <div className="py-12 flex flex-col items-center justify-center space-y-3 opacity-50">
+              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hydrating Leaderboard</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-50 p-3 rounded-lg border border-red-100 mb-2">
+              <p className="text-[10px] text-red-600 font-bold leading-tight uppercase tracking-tight">{error}</p>
+            </div>
+          )}
+
           {leaders.map((leader, index) => {
             const xp = Math.floor((leader.correctSolved || 0) * 10 + (leader.accuracy || 0) * 5 + (leader.timeSpent || 0) * 2 + (leader.socialPoints || 0));
             return (
@@ -103,8 +146,20 @@ export default function Leaderboard({ isMini, fullWidth }: LeaderboardProps) {
           )}
         </div>
         
-        <div className="mt-4 text-[10px] text-[#64748b] italic">
-          Last updated: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        <div className="mt-4 flex items-center justify-between">
+          <div className="text-[10px] text-[#64748b] italic">
+            Auto-sync active
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-6 text-[10px] uppercase font-bold text-blue-600 gap-1 hover:bg-blue-50"
+            onClick={fetchLeaders}
+            disabled={loading}
+          >
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
+            Force Refresh
+          </Button>
         </div>
       </div>
     </div>

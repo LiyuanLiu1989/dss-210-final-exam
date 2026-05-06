@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { db } from "../lib/firebase";
-import { doc, onSnapshot } from "firebase/firestore";
+import { db, handleFirestoreError, OperationType } from "../lib/firebase";
+import { doc, onSnapshot, getDoc } from "firebase/firestore";
 import { UserProfile } from "../types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
@@ -21,19 +21,50 @@ export default function Dashboard({ userId, onStartPractice, onViewLeaderboard, 
   useEffect(() => {
     if (!userId) return;
 
-    const unsubscribe = onSnapshot(doc(db, "users", userId), (doc) => {
-      if (doc.exists()) {
-        setProfile(doc.data() as UserProfile);
+    const unsubscribe = onSnapshot(doc(db, "users", userId), (snapshot) => {
+      if (snapshot.exists()) {
+        setProfile(snapshot.data() as UserProfile);
+      } else {
+        console.warn("User profile not found in sync");
       }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `users/${userId}`);
     });
 
     return () => unsubscribe();
   }, [userId]);
 
+  const refreshProfile = async () => {
+    if (!userId) return;
+    try {
+      const snap = await getDoc(doc(db, "users", userId));
+      if (snap.exists()) {
+        setProfile(snap.data() as UserProfile);
+      }
+    } catch (e) {
+      console.error("Manual refresh failed:", e);
+    }
+  };
+
   if (!profile) {
     return (
-      <div className="flex items-center justify-center h-[200px] bg-white rounded-xl border border-slate-100 animate-pulse">
-        <p className="text-slate-400 font-medium">Fetching your stats...</p>
+      <div className="flex flex-col items-center justify-center h-[300px] bg-white rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-50/20 to-transparent" />
+        <div className="relative flex flex-col items-center space-y-4">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <div className="text-center">
+            <p className="text-slate-600 font-extrabold text-lg">Fetching your stats...</p>
+            <p className="text-slate-400 text-xs font-medium uppercase tracking-widest mt-1">Establishing secure connection</p>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-[10px] font-bold text-blue-600 underline"
+            onClick={refreshProfile}
+          >
+            Click here if taking too long
+          </Button>
+        </div>
       </div>
     );
   }
